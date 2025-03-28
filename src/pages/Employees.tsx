@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useEmployees, Employee } from "@/context/EmployeeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -12,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlusCircle, Search, Edit, Trash, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 const Employees = () => {
   const { employees, deleteEmployee } = useEmployees();
@@ -21,10 +20,8 @@ const Employees = () => {
   const [filterDepartment, setFilterDepartment] = useState("");
   const navigate = useNavigate();
 
-  // Get unique departments for filter
   const departments = Array.from(new Set(employees.map(emp => emp.department)));
 
-  // Filter employees based on search and department filter
   const filteredEmployees = employees.filter(emp => {
     const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useEmployees } from "@/context/EmployeeContext";
@@ -10,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { BarChart, PieChart, LineChart, Line, Bar, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { format, subMonths, differenceInMonths, parseISO } from "date-fns";
 import { Download } from "lucide-react";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 const Reports = () => {
   const { employees } = useEmployees();
