@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { fr } from "date-fns/locale";
 
 const Attendance = () => {
   const { user, isAdmin, isManager } = useAuth();
@@ -28,7 +29,7 @@ const Attendance = () => {
   // Get employee name by ID
   const getEmployeeName = (id: string) => {
     const employee = employees.find(emp => emp.id === id);
-    return employee ? employee.name : "Unknown";
+    return employee ? employee.name : "Inconnu";
   };
 
   // Get employee avatar by ID
@@ -48,8 +49,8 @@ const Attendance = () => {
   const userRecord = user && attendanceRecords.find(
     record => record.employeeId === user.id && record.date === formattedDate
   );
-  const hasClockIn = userRecord?.clockIn ? true : false; // Convert to boolean
-  const hasClockOut = userRecord?.clockOut ? true : false; // Convert to boolean
+  const hasClockIn = userRecord?.clockIn ? true : false;
+  const hasClockOut = userRecord?.clockOut ? true : false;
 
   // Handler for clock in/out
   const handleClockInOut = () => {
@@ -66,13 +67,13 @@ const Attendance = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'present':
-        return <Badge className="bg-ems-success">Present</Badge>;
+        return <Badge className="bg-ems-success">Présent</Badge>;
       case 'absent':
         return <Badge className="bg-ems-danger">Absent</Badge>;
       case 'late':
-        return <Badge className="bg-ems-warning">Late</Badge>;
+        return <Badge className="bg-ems-warning">En retard</Badge>;
       case 'half_day':
-        return <Badge variant="outline" className="text-ems-warning border-ems-warning">Half Day</Badge>;
+        return <Badge variant="outline" className="text-ems-warning border-ems-warning">Demi-journée</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -81,7 +82,7 @@ const Attendance = () => {
   // Format date for display
   const formatDisplayDate = (date: Date | undefined) => {
     if (!date) return "";
-    return format(date, "MMMM d, yyyy");
+    return format(date, "d MMMM yyyy", { locale: fr });
   };
 
   // Check if date is today
@@ -91,7 +92,7 @@ const Attendance = () => {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-2xl font-bold tracking-tight">Attendance</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Présence</h1>
           
           {isToday && (
             <Button 
@@ -102,17 +103,17 @@ const Attendance = () => {
               {!hasClockIn ? (
                 <>
                   <Clock className="mr-2 h-4 w-4" />
-                  Clock In
+                  Pointer l'arrivée
                 </>
               ) : !hasClockOut ? (
                 <>
                   <Clock className="mr-2 h-4 w-4" />
-                  Clock Out
+                  Pointer le départ
                 </>
               ) : (
                 <>
                   <Check className="mr-2 h-4 w-4" />
-                  Completed
+                  Terminé
                 </>
               )}
             </Button>
@@ -125,7 +126,7 @@ const Attendance = () => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="flex gap-2">
                   <CalendarIcon className="h-4 w-4" />
-                  {selectedDate ? formatDisplayDate(selectedDate) : "Select date"}
+                  {selectedDate ? formatDisplayDate(selectedDate) : "Sélectionner une date"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
@@ -134,22 +135,23 @@ const Attendance = () => {
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   initialFocus
+                  locale={fr}
                 />
               </PopoverContent>
             </Popover>
             
             {isToday && (
-              <Badge className="bg-ems-accent">Today</Badge>
+              <Badge className="bg-ems-accent">Aujourd'hui</Badge>
             )}
           </div>
           
           {(isAdmin || isManager) && (
             <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
               <SelectTrigger className="w-full md:w-[240px]">
-                <SelectValue placeholder="All Employees" />
+                <SelectValue placeholder="Tous les employés" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Employees</SelectItem>
+                <SelectItem value="">Tous les employés</SelectItem>
                 {employees.map((emp) => (
                   <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
                 ))}
@@ -162,10 +164,10 @@ const Attendance = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Clock In</TableHead>
-                <TableHead>Clock Out</TableHead>
+                <TableHead>Employé</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Heure d'arrivée</TableHead>
+                <TableHead>Heure de départ</TableHead>
                 <TableHead>Notes</TableHead>
               </TableRow>
             </TableHeader>
@@ -173,7 +175,7 @@ const Attendance = () => {
               {filteredRecords.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                    No attendance records found for this date
+                    Aucun enregistrement de présence trouvé pour cette date
                   </TableCell>
                 </TableRow>
               ) : (
@@ -198,7 +200,7 @@ const Attendance = () => {
                       ) : (
                         <span className="flex items-center text-gray-400">
                           <X className="mr-1 h-4 w-4" /> 
-                          Not clocked in
+                          Non pointé
                         </span>
                       )}
                     </TableCell>
@@ -211,7 +213,7 @@ const Attendance = () => {
                       ) : (
                         <span className="flex items-center text-gray-400">
                           <X className="mr-1 h-4 w-4" /> 
-                          Not clocked out
+                          Non pointé
                         </span>
                       )}
                     </TableCell>

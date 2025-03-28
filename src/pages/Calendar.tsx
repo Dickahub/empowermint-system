@@ -1,391 +1,310 @@
 
 import React, { useState } from "react";
+import { format, isToday, parseISO, isValid, addMonths, subMonths } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/context/AuthContext";
-import { useAttendance } from "@/context/AttendanceContext";
-import { useEmployees } from "@/context/EmployeeContext";
-import { Badge } from "@/components/ui/badge";
-import { format, isToday, isSameDay, addDays, subDays } from "date-fns";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, Info } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/context/AuthContext";
+import { useEmployees } from "@/context/EmployeeContext";
+
+// Define the event type
+type Event = {
+  id: string;
+  title: string;
+  date: string;
+  type: "meeting" | "holiday" | "leave" | "training";
+  employees?: string[];
+  description?: string;
+};
+
+// Sample initial events
+const initialEvents: Event[] = [
+  {
+    id: "1",
+    title: "Réunion d'équipe",
+    date: "2023-06-15",
+    type: "meeting",
+    employees: ["1", "2", "3"],
+    description: "Réunion hebdomadaire pour discuter des progrès du projet"
+  },
+  {
+    id: "2",
+    title: "Formation professionnelle",
+    date: "2023-06-20",
+    type: "training",
+    employees: ["2", "4"],
+    description: "Formation sur les nouvelles technologies"
+  },
+  {
+    id: "3",
+    title: "Jour férié - Fête Nationale",
+    date: "2023-05-20",
+    type: "holiday",
+    description: "Fête Nationale du Cameroun"
+  },
+  {
+    id: "4",
+    title: "Congé annuel",
+    date: "2023-06-10",
+    type: "leave",
+    employees: ["3"],
+    description: "Congé annuel approuvé"
+  }
+];
 
 const Calendar = () => {
-  const { user } = useAuth();
-  const { attendanceRecords } = useAttendance();
+  const { user, isAdmin, isManager } = useAuth();
   const { employees } = useEmployees();
-  const [date, setDate] = useState<Date>(new Date());
+  const [events, setEvents] = useState<Event[]>(initialEvents);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogContent, setDialogContent] = useState<{title: string, date: Date, records: any[]}>({
-    title: "",
-    date: new Date(),
-    records: []
-  });
-
-  // For demo purposes, let's create some scheduled events
-  const events = [
-    { 
-      title: "Team Meeting", 
-      date: format(addDays(new Date(), 2), "yyyy-MM-dd"), 
-      time: "10:00 - 11:30",
-      attendees: ["1", "2", "3", "5"]
-    },
-    { 
-      title: "Project Review", 
-      date: format(addDays(new Date(), 4), "yyyy-MM-dd"), 
-      time: "14:00 - 15:00",
-      attendees: ["1", "2", "4"]
-    },
-    { 
-      title: "Training Session", 
-      date: format(addDays(new Date(), 1), "yyyy-MM-dd"), 
-      time: "09:00 - 12:00",
-      attendees: ["3", "4", "5"]
-    },
-    { 
-      title: "Department Lunch", 
-      date: format(addDays(new Date(), 3), "yyyy-MM-dd"), 
-      time: "12:30 - 14:00",
-      attendees: ["1", "2", "3", "4", "5"]
-    },
-    { 
-      title: "Quarterly Planning", 
-      date: format(addDays(new Date(), 7), "yyyy-MM-dd"), 
-      time: "09:00 - 17:00",
-      attendees: ["1", "2"]
-    },
-    { 
-      title: "Client Meeting", 
-      date: format(subDays(new Date(), 1), "yyyy-MM-dd"), 
-      time: "15:00 - 16:00",
-      attendees: ["2", "5"]
-    }
-  ];
-
-  // Function to check if a date has events
-  const hasEvents = (date: Date) => {
-    const formattedDate = format(date, "yyyy-MM-dd");
-    return events.some(event => event.date === formattedDate);
-  };
-
-  // Function to check if a date has attendance
-  const hasAttendance = (date: Date) => {
-    const formattedDate = format(date, "yyyy-MM-dd");
-    return attendanceRecords.some(record => record.date === formattedDate && record.employeeId === user?.id);
-  };
-
-  // Function to get events for a specific date
-  const getEvents = (date: Date) => {
-    const formattedDate = format(date, "yyyy-MM-dd");
-    return events.filter(event => event.date === formattedDate);
-  };
-
-  // Function to get attendance for a specific date
-  const getAttendance = (date: Date) => {
-    const formattedDate = format(date, "yyyy-MM-dd");
-    return attendanceRecords.filter(record => record.date === formattedDate);
-  };
-
-  // Date renderer for the calendar
-  const dateRenderer = (date: Date, view: "month" | "year") => {
-    if (view === "month") {
-      const dayHasEvents = hasEvents(date);
-      const dayHasAttendance = hasAttendance(date);
-      
-      return (
-        <div className="relative">
-          <time dateTime={format(date, "yyyy-MM-dd")}>
-            {format(date, "d")}
-          </time>
-          <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-0.5">
-            {dayHasEvents && (
-              <div className="h-1 w-1 rounded-full bg-ems-accent" />
-            )}
-            {dayHasAttendance && (
-              <div className="h-1 w-1 rounded-full bg-ems-success" />
-            )}
-          </div>
-        </div>
-      );
-    }
-    return date.getDate();
-  };
-
-  // Handler for date click
-  const handleDateClick = (date: Date) => {
-    setSelectedDate(date);
-    
-    const dateEvents = getEvents(date);
-    const dateAttendance = getAttendance(date);
-    
-    setDialogContent({
-      title: format(date, "MMMM d, yyyy"),
-      date: date,
-      records: [...dateEvents.map(event => ({ ...event, type: 'event' })), ...dateAttendance.map(record => ({ ...record, type: 'attendance' }))]
-    });
-    
-    if (dateEvents.length > 0 || dateAttendance.length > 0) {
-      setDialogOpen(true);
-    }
-  };
-
-  const formatDisplayDate = (date: Date) => {
-    return format(date, "MMMM yyyy");
-  };
-
-  // Get events for the selected day to display in the main view
-  const selectedDateEvents = selectedDate ? getEvents(selectedDate) : [];
-  const selectedDateFormatted = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
+  const [displayMonth, setDisplayMonth] = useState<Date>(new Date());
+  const [filterType, setFilterType] = useState<string>("");
   
-  // Get user's attendance for the selected day
-  const userAttendance = user && selectedDate
-    ? attendanceRecords.find(
-        record => record.employeeId === user.id && record.date === selectedDateFormatted
-      )
-    : undefined;
-
+  // Get employee name by ID
+  const getEmployeeName = (id: string) => {
+    const employee = employees.find(emp => emp.id === id);
+    return employee ? employee.name : "Inconnu";
+  };
+  
+  // Get employee avatar by ID
+  const getEmployeeAvatar = (id: string) => {
+    const employee = employees.find(emp => emp.id === id);
+    return employee?.avatar;
+  };
+  
+  // Filter events by date and/or type
+  const getFilteredEvents = () => {
+    return events.filter(event => {
+      const matchesDate = selectedDate 
+        ? format(selectedDate, "yyyy-MM-dd") === event.date 
+        : true;
+      const matchesType = filterType ? event.type === filterType : true;
+      return matchesDate && matchesType;
+    });
+  };
+  
+  // Get event background color based on type
+  const getEventColor = (type: string) => {
+    switch (type) {
+      case "meeting":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "holiday":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "leave":
+        return "bg-amber-100 text-amber-800 border-amber-200";
+      case "training":
+        return "bg-green-100 text-green-800 border-green-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+  
+  // Get badge text based on event type
+  const getEventBadge = (type: string) => {
+    switch (type) {
+      case "meeting":
+        return <Badge className="bg-blue-500">Réunion</Badge>;
+      case "holiday":
+        return <Badge className="bg-red-500">Férié</Badge>;
+      case "leave":
+        return <Badge className="bg-amber-500">Congé</Badge>;
+      case "training":
+        return <Badge className="bg-green-500">Formation</Badge>;
+      default:
+        return <Badge>Autre</Badge>;
+    }
+  };
+  
+  // Handle previous month navigation
+  const handlePrevMonth = () => {
+    setDisplayMonth(prevMonth => subMonths(prevMonth, 1));
+  };
+  
+  // Handle next month navigation
+  const handleNextMonth = () => {
+    setDisplayMonth(prevMonth => addMonths(prevMonth, 1));
+  };
+  
+  // Custom calendar day rendering
+  const getDayContent = (day: Date) => {
+    const formattedDate = format(day, "yyyy-MM-dd");
+    const dayEvents = events.filter(event => event.date === formattedDate);
+    
+    return (
+      <div className="relative h-full w-full p-2">
+        <div className="text-center">{format(day, "d")}</div>
+        {dayEvents.length > 0 && (
+          <div className="absolute bottom-1 left-0 right-0 flex justify-center">
+            <div className="flex space-x-1">
+              {dayEvents.length > 3 ? (
+                <Badge className="bg-gray-500 text-[10px]">{dayEvents.length}</Badge>
+              ) : (
+                dayEvents.map((event, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`w-2 h-2 rounded-full ${
+                      event.type === "meeting" ? "bg-blue-500" :
+                      event.type === "holiday" ? "bg-red-500" : 
+                      event.type === "leave" ? "bg-amber-500" :
+                      "bg-green-500"
+                    }`}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+  
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold tracking-tight">Calendar & Schedule</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-2xl font-bold tracking-tight">Calendrier</h1>
+          
+          {(isAdmin || isManager) && (
+            <Button className="bg-ems-primary">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              Ajouter un événement
+            </Button>
+          )}
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
+        
+        <div className="grid lg:grid-cols-[300px_1fr] gap-6">
+          <div>
             <Card>
-              <CardHeader>
-                <CardTitle>Calendar</CardTitle>
-                <CardDescription>View your schedule and attendance</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between items-center mb-4">
-                  <div className="text-lg font-medium">{formatDisplayDate(date)}</div>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Calendrier</CardTitle>
                   <div className="flex space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => setDate(prevDate => subDays(prevDate, 30))}
-                    >
+                    <Button variant="outline" size="icon" onClick={handlePrevMonth}>
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => setDate(prevDate => addDays(prevDate, 30))}
-                    >
+                    <Button variant="outline" size="icon" onClick={handleNextMonth}>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
+              </CardHeader>
+              <CardContent>
                 <CalendarComponent
                   mode="single"
                   selected={selectedDate}
-                  onSelect={handleDateClick}
-                  month={date}
-                  onMonthChange={setDate}
+                  onSelect={setSelectedDate}
+                  month={displayMonth}
+                  onMonthChange={setDisplayMonth}
+                  locale={fr}
                   className="rounded-md border"
-                  components={{
-                    Day: ({ date, ...props }) => (
-                      <button 
-                        {...props} 
-                        className={`${props.className} ${isToday(date) ? "bg-ems-accent text-white hover:bg-ems-accent hover:text-white focus:bg-ems-accent focus:text-white" : ""}`}
-                      >
-                        {dateRenderer(date, "month")}
-                      </button>
-                    )
-                  }}
                 />
-                <div className="mt-4 flex items-center space-x-4 text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <div className="h-3 w-3 rounded-full bg-ems-accent mr-2" />
-                    <span>Events</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="h-3 w-3 rounded-full bg-ems-success mr-2" />
-                    <span>Attendance</span>
+                
+                <div className="mt-6 space-y-2">
+                  <div className="text-sm font-medium">Filtrer par type</div>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tous les types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Tous les types</SelectItem>
+                      <SelectItem value="meeting">Réunions</SelectItem>
+                      <SelectItem value="holiday">Jours fériés</SelectItem>
+                      <SelectItem value="leave">Congés</SelectItem>
+                      <SelectItem value="training">Formations</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="mt-6">
+                  <div className="text-sm font-medium mb-2">Légende</div>
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 rounded-full bg-blue-500 mr-2" />
+                      <span className="text-sm">Réunion</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 rounded-full bg-red-500 mr-2" />
+                      <span className="text-sm">Jour férié</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 rounded-full bg-amber-500 mr-2" />
+                      <span className="text-sm">Congé</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 rounded-full bg-green-500 mr-2" />
+                      <span className="text-sm">Formation</span>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-
+          
           <div>
             <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>
-                    {selectedDate ? format(selectedDate, "MMM d, yyyy") : "Select a day"}
-                  </CardTitle>
-                  {selectedDate && isToday(selectedDate) && (
-                    <Badge className="bg-ems-accent">Today</Badge>
-                  )}
-                </div>
-                <CardDescription>
-                  {selectedDate ? `Schedule for ${format(selectedDate, "EEEE")}` : "Click on a date to view details"}
-                </CardDescription>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">
+                  {selectedDate 
+                    ? `Événements: ${format(selectedDate, "d MMMM yyyy", { locale: fr })}`
+                    : "Tous les événements"}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                {selectedDate && (
-                  <div className="space-y-4">
-                    {userAttendance && (
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <div className="flex items-center text-ems-primary mb-1 font-medium">
-                          <Clock className="h-4 w-4 mr-2" />
-                          Attendance
-                        </div>
-                        <div className="text-sm">
-                          {userAttendance.clockIn && (
-                            <div className="flex justify-between">
-                              <span>Clock In:</span>
-                              <span className="font-medium">{userAttendance.clockIn}</span>
+                <div className="space-y-4">
+                  {getFilteredEvents().length === 0 ? (
+                    <div className="text-center py-6 text-gray-500">
+                      Aucun événement {selectedDate ? "pour cette date" : ""} {filterType && "de ce type"}
+                    </div>
+                  ) : (
+                    getFilteredEvents().map(event => (
+                      <div 
+                        key={event.id} 
+                        className={`p-4 rounded-lg border ${getEventColor(event.type)}`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium">{event.title}</div>
+                            <div className="text-sm mt-1">{event.description}</div>
+                            <div className="mt-2">
+                              {getEventBadge(event.type)}
+                              <span className="ml-2 text-xs">
+                                {format(parseISO(event.date), "d MMMM yyyy", { locale: fr })}
+                              </span>
                             </div>
-                          )}
-                          {userAttendance.clockOut && (
-                            <div className="flex justify-between">
-                              <span>Clock Out:</span>
-                              <span className="font-medium">{userAttendance.clockOut}</span>
-                            </div>
-                          )}
-                          <div className="flex justify-between">
-                            <span>Status:</span>
-                            <Badge className={`
-                              ${userAttendance.status === 'present' ? 'bg-ems-success' : ''}
-                              ${userAttendance.status === 'absent' ? 'bg-ems-danger' : ''}
-                              ${userAttendance.status === 'late' ? 'bg-ems-warning' : ''}
-                              ${userAttendance.status === 'half_day' ? 'border-ems-warning text-ems-warning' : ''}
-                            `}>
-                              {userAttendance.status}
-                            </Badge>
                           </div>
                         </div>
-                      </div>
-                    )}
-
-                    {selectedDateEvents.length > 0 ? (
-                      <div>
-                        <h3 className="font-medium mb-2">Events</h3>
-                        <div className="space-y-3">
-                          {selectedDateEvents.map((event, index) => (
-                            <div key={index} className="p-3 bg-gray-50 rounded-md">
-                              <div className="font-medium text-ems-primary">{event.title}</div>
-                              <div className="text-sm flex justify-between items-center mt-1">
-                                <div className="flex items-center text-gray-600">
-                                  <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-                                  {event.time}
-                                </div>
-                                <div className="flex items-center text-gray-600">
-                                  <Users className="h-3.5 w-3.5 mr-1" />
-                                  {event.attendees.length}
-                                </div>
-                              </div>
+                        
+                        {event.employees && event.employees.length > 0 && (
+                          <div className="mt-3">
+                            <div className="text-xs text-gray-500 mb-1">Participants:</div>
+                            <div className="flex -space-x-2">
+                              {event.employees.map(empId => (
+                                <Avatar key={empId} className="h-6 w-6 border-2 border-white">
+                                  <AvatarImage src={getEmployeeAvatar(empId)} alt={getEmployeeName(empId)} />
+                                  <AvatarFallback className="text-[10px]">
+                                    {getEmployeeName(empId).charAt(0)}
+                                  </AvatarFallback>
+                                </Avatar>
+                              ))}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="text-center py-4 text-gray-500">
-                        No events scheduled for this day
-                      </div>
-                    )}
-                  </div>
-                )}
+                    ))
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Details for {dialogContent.title}</DialogTitle>
-            <DialogDescription>
-              Events and attendance records for this day
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 mt-4">
-            {dialogContent.records
-              .filter(record => record.type === 'event')
-              .map((event, index) => (
-                <div key={`event-${index}`} className="p-3 bg-gray-50 rounded-md">
-                  <div className="flex items-center">
-                    <CalendarIcon className="h-4 w-4 mr-2 text-ems-accent" />
-                    <div>
-                      <div className="font-medium">{event.title}</div>
-                      <div className="text-sm text-gray-500">{event.time}</div>
-                    </div>
-                  </div>
-                  <div className="mt-2 text-sm">
-                    <div className="flex items-start">
-                      <Users className="h-4 w-4 mr-2 text-gray-500" />
-                      <div>
-                        <div className="text-gray-500">Attendees:</div>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {event.attendees.map((attendeeId: string) => {
-                            const employee = employees.find(emp => emp.id === attendeeId);
-                            return employee ? (
-                              <Badge key={attendeeId} variant="outline" className="font-normal">
-                                {employee.name}
-                              </Badge>
-                            ) : null;
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            
-            {dialogContent.records
-              .filter(record => record.type === 'attendance')
-              .map((record, index) => {
-                const employee = employees.find(emp => emp.id === record.employeeId);
-                return (
-                  <div key={`attendance-${index}`} className="p-3 bg-gray-50 rounded-md">
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-ems-success" />
-                      <div>
-                        <div className="font-medium">{employee?.name || 'Unknown Employee'}</div>
-                        <div className="text-sm space-x-2">
-                          {record.clockIn && <span>In: {record.clockIn}</span>}
-                          {record.clockOut && <span>Out: {record.clockOut}</span>}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-2 flex justify-between items-center">
-                      <div className="text-sm text-gray-500">
-                        {record.notes && (
-                          <div className="flex items-start">
-                            <Info className="h-4 w-4 mr-1 text-gray-500" />
-                            <span>{record.notes}</span>
-                          </div>
-                        )}
-                      </div>
-                      <Badge className={`
-                        ${record.status === 'present' ? 'bg-ems-success' : ''}
-                        ${record.status === 'absent' ? 'bg-ems-danger' : ''}
-                        ${record.status === 'late' ? 'bg-ems-warning' : ''}
-                        ${record.status === 'half_day' ? 'border-ems-warning text-ems-warning' : ''}
-                      `}>
-                        {record.status}
-                      </Badge>
-                    </div>
-                  </div>
-                );
-              })}
-              
-            {dialogContent.records.length === 0 && (
-              <div className="text-center py-4 text-gray-500">
-                No records for this day
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </DashboardLayout>
   );
 };

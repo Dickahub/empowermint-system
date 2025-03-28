@@ -34,15 +34,15 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md px-4">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-ems-primary">EmployeePro</h1>
-          <p className="text-gray-600 mt-2">Employee Management System</p>
+          <h1 className="text-3xl font-bold text-ems-primary">SECEL Sarl</h1>
+          <p className="text-gray-600 mt-2">Système de Gestion du Personnel</p>
         </div>
         
         <Card>
           <CardHeader>
-            <CardTitle>Sign In</CardTitle>
+            <CardTitle>Connexion</CardTitle>
             <CardDescription>
-              Enter your credentials to access your account
+              Entrez vos identifiants pour accéder à votre compte
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -53,7 +53,7 @@ const Login = () => {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="exemple@secel.cm"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -61,16 +61,16 @@ const Login = () => {
                 </div>
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">Mot de passe</Label>
                     <a 
                       href="#" 
                       className="text-sm text-ems-accent hover:underline"
                       onClick={(e) => {
                         e.preventDefault();
-                        alert("For demo purposes use:\nEmail: admin@example.com, manager@example.com, or employee@example.com\nPassword: password");
+                        alert("Pour la démonstration, utilisez:\nEmail: admin@example.com, manager@example.com, ou employee@example.com\nMot de passe: password");
                       }}
                     >
-                      Demo login info
+                      Info connexion démo
                     </a>
                   </div>
                   <Input
@@ -86,19 +86,19 @@ const Login = () => {
                   className="bg-ems-primary hover:bg-ems-secondary" 
                   disabled={isLoading}
                 >
-                  {isLoading ? "Signing in..." : "Sign In"}
+                  {isLoading ? "Connexion en cours..." : "Se connecter"}
                 </Button>
               </div>
             </form>
           </CardContent>
           <CardFooter className="flex flex-col">
             <p className="text-sm text-gray-500 text-center">
-              For demo purposes, use:
+              Pour la démonstration, utilisez:
             </p>
             <ul className="text-xs text-gray-500 mt-2 space-y-1">
               <li>Admin: admin@example.com / password</li>
               <li>Manager: manager@example.com / password</li>
-              <li>Employee: employee@example.com / password</li>
+              <li>Employé: employee@example.com / password</li>
             </ul>
           </CardFooter>
         </Card>

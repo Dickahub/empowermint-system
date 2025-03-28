@@ -29,13 +29,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <div className="flex items-center px-4 sm:px-6 lg:px-8 w-full">
               <SidebarTrigger className="text-ems-primary" />
               <div className="ml-6 text-ems-primary font-semibold">
-                EmployeePro Management System
+                SECEL Sarl - Système de Gestion du Personnel
               </div>
               <div className="ml-auto flex items-center space-x-4">
                 {user && (
                   <>
                     <span className="text-sm text-gray-700 hidden md:inline-block">
-                      Welcome, {user.name}
+                      Bienvenue, {user.name}
                     </span>
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user.avatar} alt={user.name} />
@@ -45,7 +45,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     </Avatar>
                     <Button variant="ghost" size="sm" onClick={handleLogout}>
                       <LogOut className="h-4 w-4 mr-2" />
-                      Logout
+                      Déconnexion
                     </Button>
                   </>
                 )}
@@ -74,7 +74,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, onLogout }) => {
     <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center">
-          <div className="mr-2 text-2xl font-bold text-white">EMS</div>
+          <div className="mr-2 text-2xl font-bold text-white">SECEL</div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -82,7 +82,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, onLogout }) => {
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => navigate("/dashboard")}>
               <UserCircle className="mr-2 h-4 w-4" />
-              <span>Dashboard</span>
+              <span>Tableau de bord</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
@@ -90,7 +90,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, onLogout }) => {
             <SidebarMenuItem>
               <SidebarMenuButton onClick={() => navigate("/employees")}>
                 <Users className="mr-2 h-4 w-4" />
-                <span>Employees</span>
+                <span>Employés</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
@@ -98,14 +98,14 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, onLogout }) => {
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => navigate("/attendance")}>
               <Clock className="mr-2 h-4 w-4" />
-              <span>Attendance</span>
+              <span>Présence</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => navigate("/calendar")}>
               <Calendar className="mr-2 h-4 w-4" />
-              <span>Schedule</span>
+              <span>Calendrier</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
@@ -113,7 +113,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, onLogout }) => {
             <SidebarMenuItem>
               <SidebarMenuButton onClick={() => navigate("/reports")}>
                 <BarChart className="mr-2 h-4 w-4" />
-                <span>Reports</span>
+                <span>Rapports</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
@@ -121,7 +121,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, onLogout }) => {
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => navigate("/profile")}>
               <FileText className="mr-2 h-4 w-4" />
-              <span>My Profile</span>
+              <span>Mon Profil</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -146,7 +146,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, onLogout }) => {
               onClick={onLogout}
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Logout
+              Déconnexion
             </Button>
           </div>
         )}
