@@ -48,8 +48,8 @@ const Attendance = () => {
   const userRecord = user && attendanceRecords.find(
     record => record.employeeId === user.id && record.date === formattedDate
   );
-  const hasClockIn = userRecord?.clockIn;
-  const hasClockOut = userRecord?.clockOut;
+  const hasClockIn = userRecord?.clockIn ? true : false; // Convert to boolean
+  const hasClockOut = userRecord?.clockOut ? true : false; // Convert to boolean
 
   // Handler for clock in/out
   const handleClockInOut = () => {
