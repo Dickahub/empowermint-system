@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { EmployeeProvider } from "@/context/EmployeeContext";
 import { AttendanceProvider } from "@/context/AttendanceContext";
+import { TaskProvider } from "@/context/TaskContext";
 
 // Pages
 import Login from "./pages/Login";
@@ -136,11 +138,13 @@ const App = () => (
       <AuthProvider>
         <EmployeeProvider>
           <AttendanceProvider>
-            <Toaster />
-            <SonnerToaster position="top-right" />
-            <BrowserRouter>
-              <AppRoutes />
-            </BrowserRouter>
+            <TaskProvider>
+              <Toaster />
+              <SonnerToaster position="top-right" />
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            </TaskProvider>
           </AttendanceProvider>
         </EmployeeProvider>
       </AuthProvider>

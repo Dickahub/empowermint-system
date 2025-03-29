@@ -1,18 +1,15 @@
 
 import React, { useState } from "react";
-import { useEmployees, Employee } from "@/context/EmployeeContext";
+import { useEmployees, getDepartments } from "@/context/EmployeeContext";
 import { useAuth } from "@/context/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlusCircle, Search, Edit, Trash, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
 const Employees = () => {
   const { employees, deleteEmployee } = useEmployees();
@@ -21,7 +18,7 @@ const Employees = () => {
   const [filterDepartment, setFilterDepartment] = useState("all");
   const navigate = useNavigate();
 
-  const departments = Array.from(new Set(employees.map(emp => emp.department)));
+  const departments = getDepartments();
 
   const filteredEmployees = employees.filter(emp => {
     const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -112,13 +109,10 @@ const Employees = () => {
                   <TableRow key={employee.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={employee.avatar} alt={employee.name} />
-                          <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
                         <div>
                           <div className="font-medium">{employee.name}</div>
                           <div className="text-sm text-gray-500">{employee.email}</div>
+                          <div className="text-sm text-gray-500">{employee.phone}</div>
                         </div>
                       </div>
                     </TableCell>

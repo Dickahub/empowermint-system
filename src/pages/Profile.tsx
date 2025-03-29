@@ -1,20 +1,60 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useEmployees } from "@/context/EmployeeContext";
 import { useAttendance } from "@/context/AttendanceContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
-import { Calendar, Clock, Mail, Phone, MapPin, Briefcase, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar, Mail, Phone, MapPin, Briefcase, Calendar as CalendarIcon } from "lucide-react";
+import PayrollSlip from "@/components/PayrollSlip";
+import TaskSlip, { Task } from "@/components/TaskSlip";
+import { toast } from "sonner";
+
+// Mock tasks for demonstration
+const mockTasks: Task[] = [
+  {
+    id: "1",
+    title: "Complete quarterly report",
+    description: "Prepare and submit the Q3 financial analysis report",
+    assignedTo: "3", // Employee ID
+    assignedBy: "2", // Manager ID
+    dueDate: "2023-10-15",
+    priority: "high",
+    status: "in_progress",
+    createdAt: "2023-09-28T10:00:00Z",
+    updatedAt: "2023-10-01T14:30:00Z"
+  },
+  {
+    id: "2",
+    title: "Update client database",
+    description: "Ensure all client information is current and accurate",
+    assignedTo: "3", // Employee ID
+    assignedBy: "1", // Admin ID
+    dueDate: "2023-10-10",
+    priority: "medium",
+    status: "pending",
+    createdAt: "2023-09-30T09:15:00Z",
+    updatedAt: "2023-09-30T09:15:00Z"
+  }
+];
+
+// Mock payroll items
+const mockPayrollItems = [
+  { description: "Transport Allowance", amount: 50000, type: "earning" as const },
+  { description: "Performance Bonus", amount: 100000, type: "earning" as const },
+  { description: "Health Insurance", amount: 25000, type: "deduction" as const },
+  { description: "Income Tax", amount: 75000, type: "deduction" as const },
+  { description: "Social Security", amount: 35000, type: "deduction" as const },
+];
 
 const Profile = () => {
   const { user } = useAuth();
   const { employees } = useEmployees();
   const { getEmployeeAttendance } = useAttendance();
+  const [tasks, setTasks] = useState<Task[]>(mockTasks);
   
   if (!user) {
     return <div>Loading...</div>;
@@ -76,6 +116,33 @@ const Profile = () => {
     }
   };
 
+  // Update task status
+  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
+    setTasks(prev => 
+      prev.map(task => 
+        task.id === taskId ? { ...task, ...updates } : task
+      )
+    );
+    toast.success("Task updated successfully");
+  };
+
+  // Add new task
+  const handleAddTask = (newTask: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const task: Task = {
+      ...newTask,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    setTasks(prev => [...prev, task]);
+    toast.success("Task added successfully");
+  };
+
+  // Get current month and year for payroll
+  const currentMonth = format(new Date(), "MMMM");
+  const currentYear = format(new Date(), "yyyy");
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -85,12 +152,6 @@ const Profile = () => {
           <div>
             <Card>
               <CardHeader className="text-center">
-                <div className="flex justify-center mb-4">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                </div>
                 <CardTitle>{user.name}</CardTitle>
                 <CardDescription>{employeeRecord?.position || user.role}</CardDescription>
               </CardHeader>
@@ -142,6 +203,8 @@ const Profile = () => {
               <TabsList className="mb-4">
                 <TabsTrigger value="attendance">Recent Attendance</TabsTrigger>
                 <TabsTrigger value="info">Personal Information</TabsTrigger>
+                <TabsTrigger value="tasks">Tasks</TabsTrigger>
+                <TabsTrigger value="payroll">Payroll</TabsTrigger>
               </TabsList>
               
               <TabsContent value="attendance">
@@ -232,7 +295,7 @@ const Profile = () => {
                           {employeeRecord?.salary && (
                             <div>
                               <label className="text-sm text-gray-500">Salary</label>
-                              <div className="font-medium">${employeeRecord.salary.toLocaleString()}</div>
+                              <div className="font-medium">{employeeRecord.salary.toLocaleString()} FCFA</div>
                             </div>
                           )}
                         </div>
@@ -240,6 +303,29 @@ const Profile = () => {
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+              
+              <TabsContent value="tasks">
+                <TaskSlip
+                  employeeId={user.id}
+                  employeeName={user.name}
+                  tasks={tasks.filter(task => task.assignedTo === user.id)}
+                  onTaskUpdate={handleTaskUpdate}
+                  onTaskAdd={handleAddTask}
+                />
+              </TabsContent>
+              
+              <TabsContent value="payroll">
+                <PayrollSlip
+                  employeeName={user.name}
+                  employeeId={user.id}
+                  department={employeeRecord?.department || "Not assigned"}
+                  position={employeeRecord?.position || "Not specified"}
+                  month={currentMonth}
+                  year={currentYear}
+                  baseSalary={employeeRecord?.salary || 0}
+                  items={mockPayrollItems}
+                />
               </TabsContent>
             </Tabs>
           </div>
