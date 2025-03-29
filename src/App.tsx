@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { EmployeeProvider } from "@/context/EmployeeContext";
 import { AttendanceProvider } from "@/context/AttendanceContext";
 import { TaskProvider } from "@/context/TaskContext";
+import { LeaveProvider } from "@/context/LeaveContext";
 
 // Pages
 import Login from "./pages/Login";
@@ -19,6 +20,8 @@ import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
+import Leaves from "./pages/Leaves";
+import Payroll from "./pages/Payroll";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +103,24 @@ const AppRoutes = () => {
       />
       
       <Route 
+        path="/leaves" 
+        element={
+          <ManagerRoute>
+            <Leaves />
+          </ManagerRoute>
+        } 
+      />
+      
+      <Route 
+        path="/payroll" 
+        element={
+          <ManagerRoute>
+            <Payroll />
+          </ManagerRoute>
+        } 
+      />
+      
+      <Route 
         path="/calendar" 
         element={
           <ProtectedRoute>
@@ -139,11 +160,13 @@ const App = () => (
         <EmployeeProvider>
           <AttendanceProvider>
             <TaskProvider>
-              <Toaster />
-              <SonnerToaster position="top-right" />
-              <BrowserRouter>
-                <AppRoutes />
-              </BrowserRouter>
+              <LeaveProvider>
+                <Toaster />
+                <SonnerToaster position="top-right" />
+                <BrowserRouter>
+                  <AppRoutes />
+                </BrowserRouter>
+              </LeaveProvider>
             </TaskProvider>
           </AttendanceProvider>
         </EmployeeProvider>
