@@ -32,7 +32,7 @@ const mockUsers: User[] = [
     name: 'Admin User',
     email: 'admin@secel.cm',
     role: 'admin',
-    department: 'General Management',
+    department: 'General Management Department',
     position: 'System Administrator',
   },
   {
@@ -40,7 +40,7 @@ const mockUsers: User[] = [
     name: 'Manager User',
     email: 'manager@secel.cm',
     role: 'manager',
-    department: 'Marketing',
+    department: 'Marketing Department',
     position: 'Marketing Manager',
   },
   {
@@ -48,7 +48,7 @@ const mockUsers: User[] = [
     name: 'Employee User',
     email: 'employee@secel.cm',
     role: 'employee',
-    department: 'Financial',
+    department: 'Financial Department',
     position: 'Accountant',
   },
 ];
@@ -64,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (session?.user) {
         try {
-          // We're using local data instead of Supabase for now since the users table may not be set up yet
+          // We're using local data instead of Supabase for now
           const savedUser = localStorage.getItem('ems-user');
           if (savedUser) {
             setUser(JSON.parse(savedUser));

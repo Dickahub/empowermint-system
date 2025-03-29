@@ -195,6 +195,53 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          assigned_by: string | null
+          assigned_to: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string
+          id: string
+          priority: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_by?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date: string
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_by?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

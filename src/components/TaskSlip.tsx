@@ -1,17 +1,18 @@
-
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useAuth } from "@/context/AuthContext";
-import { PlusCircle, Calendar, Clock, ClipboardList } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CheckCircle2, Clock, AlertTriangle, XCircle, CalendarIcon, Pencil, Trash2 } from 'lucide-react';
 import { Form } from "@/components/ui/form";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from 'date-fns';
 
 export interface Task {
   id: string;
@@ -20,8 +21,8 @@ export interface Task {
   assignedTo: string;
   assignedBy: string;
   dueDate: string;
-  priority: 'low' | 'medium' | 'high';
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  priority: "low" | "medium" | "high";
+  status: "pending" | "in_progress" | "completed" | "cancelled";
   createdAt: string;
   updatedAt: string;
 }
@@ -30,8 +31,9 @@ interface TaskSlipProps {
   employeeId: string;
   employeeName: string;
   tasks: Task[];
-  onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
+  onTaskUpdate?: (taskId: string, updates: Partial<Task>) => void;
   onTaskAdd?: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  readonly?: boolean;
 }
 
 const TaskSlip: React.FC<TaskSlipProps> = ({
@@ -39,14 +41,15 @@ const TaskSlip: React.FC<TaskSlipProps> = ({
   employeeName,
   tasks,
   onTaskUpdate,
-  onTaskAdd
+  onTaskAdd,
+  readonly
 }) => {
   const { user, isAdmin, isManager } = useAuth();
   const [newTask, setNewTask] = useState<{
     title: string;
     description: string;
     dueDate: string;
-    priority: 'low' | 'medium' | 'high';
+    priority: "low" | "medium" | "high";
   }>({
     title: '',
     description: '',
