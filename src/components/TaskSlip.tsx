@@ -1,18 +1,30 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, Clock, AlertTriangle, XCircle, CalendarIcon, Pencil, Trash2 } from 'lucide-react';
+import { CheckCircle2, Clock, AlertTriangle, XCircle, CalendarIcon, Pencil, Trash2, Clipboard, PlusCircle } from 'lucide-react';
 import { Form } from "@/components/ui/form";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from 'date-fns';
+import { useAuth } from '@/context/AuthContext';
+import { 
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption 
+} from "@/components/ui/table";
 
 export interface Task {
   id: string;
@@ -90,7 +102,7 @@ const TaskSlip: React.FC<TaskSlipProps> = ({
   };
 
   const updateTaskStatus = (taskId: string, status: Task['status']) => {
-    if (canUpdateTasks) {
+    if (canUpdateTasks && onTaskUpdate) {
       onTaskUpdate(taskId, { 
         status, 
         updatedAt: new Date().toISOString() 
@@ -128,7 +140,7 @@ const TaskSlip: React.FC<TaskSlipProps> = ({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
         <CardTitle className="text-xl">
-          <ClipboardList className="h-5 w-5 inline mr-2" />
+          <Clipboard className="h-5 w-5 inline mr-2" />
           Tasks for {employeeName}
         </CardTitle>
         {canAddTasks && onTaskAdd && (
@@ -236,7 +248,7 @@ const TaskSlip: React.FC<TaskSlipProps> = ({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
                       {new Date(task.dueDate).toLocaleDateString()}
                     </div>
                   </TableCell>
