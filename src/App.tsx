@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import Leaves from "./pages/Leaves";
 import Payroll from "./pages/Payroll";
+import Tasks from "./pages/Tasks";
 
 const queryClient = new QueryClient();
 
@@ -117,6 +117,15 @@ const AppRoutes = () => {
           <ManagerRoute>
             <Payroll />
           </ManagerRoute>
+        } 
+      />
+      
+      <Route 
+        path="/tasks" 
+        element={
+          <ProtectedRoute>
+            <Tasks />
+          </ProtectedRoute>
         } 
       />
       
