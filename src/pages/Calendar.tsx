@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { format, isToday, parseISO, isValid, addMonths, subMonths } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -14,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/context/AuthContext";
 import { useEmployees } from "@/context/EmployeeContext";
 
-// Define the event type
 type Event = {
   id: string;
   title: string;
@@ -24,7 +22,6 @@ type Event = {
   description?: string;
 };
 
-// Sample initial events
 const initialEvents: Event[] = [
   {
     id: "1",
@@ -65,32 +62,28 @@ const Calendar = () => {
   const [events, setEvents] = useState<Event[]>(initialEvents);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [displayMonth, setDisplayMonth] = useState<Date>(new Date());
-  const [filterType, setFilterType] = useState<string>("");
+  const [filterType, setFilterType] = useState<string>("all");
   
-  // Get employee name by ID
   const getEmployeeName = (id: string) => {
     const employee = employees.find(emp => emp.id === id);
     return employee ? employee.name : "Inconnu";
   };
   
-  // Get employee avatar by ID
   const getEmployeeAvatar = (id: string) => {
     const employee = employees.find(emp => emp.id === id);
     return employee?.avatar;
   };
   
-  // Filter events by date and/or type
   const getFilteredEvents = () => {
     return events.filter(event => {
       const matchesDate = selectedDate 
         ? format(selectedDate, "yyyy-MM-dd") === event.date 
         : true;
-      const matchesType = filterType ? event.type === filterType : true;
+      const matchesType = filterType !== "all" ? event.type === filterType : true;
       return matchesDate && matchesType;
     });
   };
   
-  // Get event background color based on type
   const getEventColor = (type: string) => {
     switch (type) {
       case "meeting":
@@ -106,7 +99,6 @@ const Calendar = () => {
     }
   };
   
-  // Get badge text based on event type
   const getEventBadge = (type: string) => {
     switch (type) {
       case "meeting":
@@ -122,17 +114,14 @@ const Calendar = () => {
     }
   };
   
-  // Handle previous month navigation
   const handlePrevMonth = () => {
     setDisplayMonth(prevMonth => subMonths(prevMonth, 1));
   };
   
-  // Handle next month navigation
   const handleNextMonth = () => {
     setDisplayMonth(prevMonth => addMonths(prevMonth, 1));
   };
   
-  // Custom calendar day rendering
   const getDayContent = (day: Date) => {
     const formattedDate = format(day, "yyyy-MM-dd");
     const dayEvents = events.filter(event => event.date === formattedDate);
@@ -213,7 +202,7 @@ const Calendar = () => {
                       <SelectValue placeholder="Tous les types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tous les types</SelectItem>
+                      <SelectItem value="all">Tous les types</SelectItem>
                       <SelectItem value="meeting">Réunions</SelectItem>
                       <SelectItem value="holiday">Jours fériés</SelectItem>
                       <SelectItem value="leave">Congés</SelectItem>

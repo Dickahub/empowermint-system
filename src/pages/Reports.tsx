@@ -15,7 +15,7 @@ const Reports = () => {
   const { employees } = useEmployees();
   const { attendanceRecords } = useAttendance();
   const [timeRange, setTimeRange] = useState("3months");
-  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
 
   // Department data
   const departments = Array.from(new Set(employees.map(emp => emp.department)));
@@ -41,9 +41,9 @@ const Reports = () => {
   const dateRangeStart = getDateRange();
 
   // Filter employees by department
-  const filteredEmployees = departmentFilter
-    ? employees.filter(emp => emp.department === departmentFilter)
-    : employees;
+  const filteredEmployees = departmentFilter === "all"
+    ? employees
+    : employees.filter(emp => emp.department === departmentFilter);
 
   // Filter attendance records by date range
   const filteredAttendance = attendanceRecords.filter(record => {
@@ -155,7 +155,7 @@ const Reports = () => {
               <SelectValue placeholder="All Departments" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Departments</SelectItem>
+              <SelectItem value="all">All Departments</SelectItem>
               {departments.map((dept) => (
                 <SelectItem key={dept} value={dept}>{dept}</SelectItem>
               ))}

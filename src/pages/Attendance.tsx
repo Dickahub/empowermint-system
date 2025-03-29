@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useAttendance } from "@/context/AttendanceContext";
 import { useEmployees } from "@/context/EmployeeContext";
@@ -21,7 +20,7 @@ const Attendance = () => {
   const { attendanceRecords, clockIn, clockOut } = useAttendance();
   const { employees } = useEmployees();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [employeeFilter, setEmployeeFilter] = useState<string>(user?.id || "");
+  const [employeeFilter, setEmployeeFilter] = useState<string>(user?.id || "all");
 
   // Helper to get the formatted date
   const formattedDate = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
@@ -151,7 +150,7 @@ const Attendance = () => {
                 <SelectValue placeholder="Tous les employés" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les employés</SelectItem>
+                <SelectItem value="all">Tous les employés</SelectItem>
                 {employees.map((emp) => (
                   <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
                 ))}

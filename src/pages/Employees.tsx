@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useEmployees, Employee } from "@/context/EmployeeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -17,7 +18,7 @@ const Employees = () => {
   const { employees, deleteEmployee } = useEmployees();
   const { isAdmin } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterDepartment, setFilterDepartment] = useState("");
+  const [filterDepartment, setFilterDepartment] = useState("all");
   const navigate = useNavigate();
 
   const departments = Array.from(new Set(employees.map(emp => emp.department)));
@@ -27,7 +28,7 @@ const Employees = () => {
                           emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           emp.position.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesDepartment = filterDepartment === "" || emp.department === filterDepartment;
+    const matchesDepartment = filterDepartment === "all" || emp.department === filterDepartment;
     
     return matchesSearch && matchesDepartment;
   });
@@ -80,7 +81,7 @@ const Employees = () => {
               <SelectValue placeholder="All Departments" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Departments</SelectItem>
+              <SelectItem value="all">All Departments</SelectItem>
               {departments.map((dept) => (
                 <SelectItem key={dept} value={dept}>{dept}</SelectItem>
               ))}
