@@ -38,7 +38,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                       Bienvenue, {user.name}
                     </span>
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatar} alt={user.name} />
                       <AvatarFallback>
                         {user.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
@@ -131,7 +130,6 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ user, onLogout }) => {
           <div className="flex flex-col">
             <div className="flex items-center mb-2">
               <Avatar className="h-8 w-8 mr-2">
-                <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div>

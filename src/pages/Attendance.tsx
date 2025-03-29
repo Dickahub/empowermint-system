@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useAttendance } from "@/context/AttendanceContext";
 import { useEmployees } from "@/context/EmployeeContext";
@@ -12,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { fr } from "date-fns/locale";
 
 const Attendance = () => {
@@ -31,16 +32,10 @@ const Attendance = () => {
     return employee ? employee.name : "Inconnu";
   };
 
-  // Get employee avatar by ID
-  const getEmployeeAvatar = (id: string) => {
-    const employee = employees.find(emp => emp.id === id);
-    return employee?.avatar;
-  };
-
   // Filter attendance records based on date and employee filter
   const filteredRecords = attendanceRecords.filter(record => {
     const matchesDate = record.date === formattedDate;
-    const matchesEmployee = !employeeFilter || record.employeeId === employeeFilter;
+    const matchesEmployee = employeeFilter === "all" || record.employeeId === employeeFilter;
     return matchesDate && matchesEmployee;
   });
 
@@ -183,7 +178,6 @@ const Attendance = () => {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarImage src={getEmployeeAvatar(record.employeeId)} alt={getEmployeeName(record.employeeId)} />
                           <AvatarFallback>{getEmployeeName(record.employeeId).charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="font-medium">{getEmployeeName(record.employeeId)}</div>

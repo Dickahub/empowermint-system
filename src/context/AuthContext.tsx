@@ -63,16 +63,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
-        // If we have a session, get user data from supabase
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-          
-        if (userData && !error) {
-          setUser(userData as User);
-          return;
+        try {
+          // We're using local data instead of Supabase for now since the users table may not be set up yet
+          const savedUser = localStorage.getItem('ems-user');
+          if (savedUser) {
+            setUser(JSON.parse(savedUser));
+            return;
+          }
+        } catch (error) {
+          console.error('Error getting user data:', error);
         }
       }
       
@@ -88,29 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Try Supabase auth first if it's set up
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
-      if (!authError && authData.user) {
-        // Get user data from database
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', authData.user.id)
-          .single();
-          
-        if (userData && !userError) {
-          setUser(userData as User);
-          localStorage.setItem('ems-user', JSON.stringify(userData));
-          toast.success(`Welcome back, ${userData.name}!`);
-          return true;
-        }
-      }
-      
-      // Fallback to mock users
+      // For now, we'll just use mock users since the Supabase tables may not be set up yet
       const foundUser = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
       
       if (foundUser && password === 'password') {

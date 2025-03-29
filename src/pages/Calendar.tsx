@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { format, isToday, parseISO, isValid, addMonths, subMonths } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -7,7 +8,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
@@ -67,11 +68,6 @@ const Calendar = () => {
   const getEmployeeName = (id: string) => {
     const employee = employees.find(emp => emp.id === id);
     return employee ? employee.name : "Inconnu";
-  };
-  
-  const getEmployeeAvatar = (id: string) => {
-    const employee = employees.find(emp => emp.id === id);
-    return employee?.avatar;
   };
   
   const getFilteredEvents = () => {
@@ -276,7 +272,6 @@ const Calendar = () => {
                             <div className="flex -space-x-2">
                               {event.employees.map(empId => (
                                 <Avatar key={empId} className="h-6 w-6 border-2 border-white">
-                                  <AvatarImage src={getEmployeeAvatar(empId)} alt={getEmployeeName(empId)} />
                                   <AvatarFallback className="text-[10px]">
                                     {getEmployeeName(empId).charAt(0)}
                                   </AvatarFallback>

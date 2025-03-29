@@ -2,7 +2,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Task } from '@/components/TaskSlip';
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from './AuthContext';
 
 interface TaskContextProps {
@@ -67,40 +66,22 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const fetchTasks = async () => {
       setLoading(true);
       try {
-        // Try to fetch from Supabase first
-        const { data, error } = await supabase
-          .from('tasks')
-          .select('*');
+        // Using localStorage for now until we set up the Supabase table
+        const storedTasks = localStorage.getItem('ems-tasks');
         
-        if (error) {
-          console.error('Error fetching from Supabase:', error);
-          // Fall back to localStorage
-          const storedTasks = localStorage.getItem('ems-tasks');
-          
-          if (storedTasks) {
-            setTasks(JSON.parse(storedTasks));
-          } else {
-            // Use mock data for initial setup
-            setTasks(mockTasks);
-            localStorage.setItem('ems-tasks', JSON.stringify(mockTasks));
-          }
-        } else if (data && data.length > 0) {
-          setTasks(data as Task[]);
+        if (storedTasks) {
+          setTasks(JSON.parse(storedTasks));
         } else {
-          // No data in Supabase, use mock data
+          // Use mock data for initial setup
           setTasks(mockTasks);
-          // Store in Supabase
-          const { error: insertError } = await supabase
-            .from('tasks')
-            .insert(mockTasks);
-            
-          if (insertError) {
-            console.error('Error inserting mock data to Supabase:', insertError);
-          }
+          localStorage.setItem('ems-tasks', JSON.stringify(mockTasks));
         }
       } catch (error) {
         console.error('Error fetching tasks:', error);
         toast.error('Failed to load task data');
+        
+        // Fall back to mock data if needed
+        setTasks(mockTasks);
       } finally {
         setLoading(false);
       }
@@ -109,25 +90,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchTasks();
   }, []);
 
-  // Save to localStorage and Supabase whenever tasks change
+  // Save to localStorage whenever tasks change
   useEffect(() => {
     if (tasks.length > 0) {
       localStorage.setItem('ems-tasks', JSON.stringify(tasks));
-      
-      // Update in Supabase - in a real app, you'd handle this differently for updates
-      // This is simplified for the example
-      const updateSupabase = async () => {
-        try {
-          // Clear and reinsert for simplicity
-          await supabase.from('tasks').delete().neq('id', '0');
-          const { error } = await supabase.from('tasks').insert(tasks);
-          if (error) console.error('Error updating Supabase:', error);
-        } catch (error) {
-          console.error('Error saving to Supabase:', error);
-        }
-      };
-      
-      updateSupabase();
     }
   }, [tasks]);
 
@@ -146,68 +112,40 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .insert([newTask]);
-        
-      if (error) throw error;
-      
-      setTasks(prev => [...prev, newTask]);
+      const updatedTasks = [...tasks, newTask];
+      setTasks(updatedTasks);
+      localStorage.setItem('ems-tasks', JSON.stringify(updatedTasks));
       toast.success('Task added successfully');
     } catch (error) {
       console.error('Error adding task:', error);
       toast.error('Failed to add task');
-      
-      // Fallback to local state if Supabase fails
-      setTasks(prev => [...prev, newTask]);
     }
   };
 
   const updateTask = async (id: string, updates: Partial<Task>) => {
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ ...updates, updatedAt: new Date().toISOString() })
-        .eq('id', id);
-        
-      if (error) throw error;
-      
-      setTasks(prev => 
-        prev.map(task => 
-          task.id === id ? { ...task, ...updates, updatedAt: new Date().toISOString() } : task
-        )
+      const updatedTasks = tasks.map(task => 
+        task.id === id ? { ...task, ...updates, updatedAt: new Date().toISOString() } : task
       );
+      
+      setTasks(updatedTasks);
+      localStorage.setItem('ems-tasks', JSON.stringify(updatedTasks));
       toast.success('Task updated successfully');
     } catch (error) {
       console.error('Error updating task:', error);
       toast.error('Failed to update task');
-      
-      // Fallback to local state if Supabase fails
-      setTasks(prev => 
-        prev.map(task => 
-          task.id === id ? { ...task, ...updates, updatedAt: new Date().toISOString() } : task
-        )
-      );
     }
   };
 
   const deleteTask = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', id);
-        
-      if (error) throw error;
-      
-      setTasks(prev => prev.filter(task => task.id !== id));
+      const filteredTasks = tasks.filter(task => task.id !== id);
+      setTasks(filteredTasks);
+      localStorage.setItem('ems-tasks', JSON.stringify(filteredTasks));
       toast.success('Task deleted successfully');
     } catch (error) {
       console.error('Error deleting task:', error);
       toast.error('Failed to delete task');
-      
-      // Fallback to local state if Supabase fails
-      setTasks(prev => prev.filter(task => task.id !== id));
     }
   };
 

@@ -29,14 +29,14 @@ const EmployeeContext = createContext<EmployeeContextProps | undefined>(undefine
 
 // Cameroon departments
 const DEPARTMENTS = [
-  'General Management',
-  'Administrative',
-  'Financial',
-  'Logistics',
-  'Consulting',
-  'Marketing',
-  'Service Center',
-  'Training Center'
+  'General Management Department',
+  'Administrative Department',
+  'Financial Department',
+  'Logistics Department',
+  'Consulting Department',
+  'Marketing Department',
+  'Service Center Department',
+  'Training Center Department'
 ];
 
 // Mock data with Cameroonian phone numbers and FCFA currency
@@ -46,7 +46,7 @@ const mockEmployees: Employee[] = [
     name: 'John Doe',
     email: 'john.doe@secel.cm',
     phone: '+237 699 123 456',
-    department: 'General Management',
+    department: 'General Management Department',
     position: 'General Manager',
     joinDate: '2020-01-15',
     status: 'active',
@@ -57,7 +57,7 @@ const mockEmployees: Employee[] = [
     name: 'Jane Smith',
     email: 'jane.smith@secel.cm',
     phone: '+237 677 987 654',
-    department: 'Marketing',
+    department: 'Marketing Department',
     position: 'Marketing Director',
     joinDate: '2019-03-10',
     status: 'active',
@@ -68,7 +68,7 @@ const mockEmployees: Employee[] = [
     name: 'Robert Johnson',
     email: 'robert.johnson@secel.cm',
     phone: '+237 698 456 789',
-    department: 'Financial',
+    department: 'Financial Department',
     position: 'Financial Analyst',
     joinDate: '2021-05-22',
     status: 'active',
@@ -79,7 +79,7 @@ const mockEmployees: Employee[] = [
     name: 'Emily Davis',
     email: 'emily.davis@secel.cm',
     phone: '+237 652 234 567',
-    department: 'Administrative',
+    department: 'Administrative Department',
     position: 'HR Manager',
     joinDate: '2018-11-05',
     status: 'on_leave',
@@ -90,7 +90,7 @@ const mockEmployees: Employee[] = [
     name: 'Michael Wilson',
     email: 'michael.wilson@secel.cm',
     phone: '+237 671 876 543',
-    department: 'Service Center',
+    department: 'Service Center Department',
     position: 'Service Representative',
     joinDate: '2021-02-18',
     status: 'active',
@@ -109,40 +109,20 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const fetchEmployees = async () => {
       setLoading(true);
       try {
-        // Try to fetch from Supabase first
-        const { data, error } = await supabase
-          .from('employees')
-          .select('*');
-        
-        if (error) {
-          console.error('Error fetching from Supabase:', error);
-          // Fall back to localStorage
-          const storedEmployees = localStorage.getItem('ems-employees');
-          
-          if (storedEmployees) {
-            setEmployees(JSON.parse(storedEmployees));
-          } else {
-            // Use mock data for initial setup
-            setEmployees(mockEmployees);
-            localStorage.setItem('ems-employees', JSON.stringify(mockEmployees));
-          }
-        } else if (data && data.length > 0) {
-          setEmployees(data as Employee[]);
+        // For now, just use mock data since the Supabase tables might not be ready
+        const storedEmployees = localStorage.getItem('ems-employees');
+        if (storedEmployees) {
+          setEmployees(JSON.parse(storedEmployees));
         } else {
-          // No data in Supabase, use mock data
           setEmployees(mockEmployees);
-          // Store in Supabase
-          const { error: insertError } = await supabase
-            .from('employees')
-            .insert(mockEmployees);
-            
-          if (insertError) {
-            console.error('Error inserting mock data to Supabase:', insertError);
-          }
+          localStorage.setItem('ems-employees', JSON.stringify(mockEmployees));
         }
       } catch (error) {
         console.error('Error fetching employees:', error);
         toast.error('Failed to load employee data');
+        
+        // Fall back to mock data if needed
+        setEmployees(mockEmployees);
       } finally {
         setLoading(false);
       }
@@ -151,25 +131,10 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     fetchEmployees();
   }, []);
 
-  // Save to localStorage and Supabase whenever employees change
+  // Save to localStorage whenever employees change
   useEffect(() => {
     if (employees.length > 0) {
       localStorage.setItem('ems-employees', JSON.stringify(employees));
-      
-      // Update in Supabase - in a real app, you'd handle this differently for updates
-      // This is simplified for the example
-      const updateSupabase = async () => {
-        try {
-          // Clear and reinsert for simplicity
-          await supabase.from('employees').delete().neq('id', '0');
-          const { error } = await supabase.from('employees').insert(employees);
-          if (error) console.error('Error updating Supabase:', error);
-        } catch (error) {
-          console.error('Error saving to Supabase:', error);
-        }
-      };
-      
-      updateSupabase();
     }
   }, [employees]);
 
@@ -180,48 +145,27 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     
     try {
-      const { error } = await supabase
-        .from('employees')
-        .insert([newEmployee]);
-        
-      if (error) throw error;
-      
       setEmployees(prev => [...prev, newEmployee as Employee]);
+      localStorage.setItem('ems-employees', JSON.stringify([...employees, newEmployee]));
       toast.success(`${employee.name} has been added`);
     } catch (error) {
       console.error('Error adding employee:', error);
       toast.error('Failed to add employee');
-      
-      // Fallback to local state if Supabase fails
-      setEmployees(prev => [...prev, newEmployee as Employee]);
     }
   };
 
   const updateEmployee = async (id: string, updatedFields: Partial<Employee>) => {
     try {
-      const { error } = await supabase
-        .from('employees')
-        .update(updatedFields)
-        .eq('id', id);
-        
-      if (error) throw error;
-      
-      setEmployees(prev => 
-        prev.map(employee => 
-          employee.id === id ? { ...employee, ...updatedFields } : employee
-        )
+      const updatedEmployees = employees.map(employee => 
+        employee.id === id ? { ...employee, ...updatedFields } : employee
       );
+      
+      setEmployees(updatedEmployees);
+      localStorage.setItem('ems-employees', JSON.stringify(updatedEmployees));
       toast.success(`Employee information updated`);
     } catch (error) {
       console.error('Error updating employee:', error);
       toast.error('Failed to update employee');
-      
-      // Fallback to local state if Supabase fails
-      setEmployees(prev => 
-        prev.map(employee => 
-          employee.id === id ? { ...employee, ...updatedFields } : employee
-        )
-      );
     }
   };
 
@@ -229,21 +173,13 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const employeeName = employees.find(e => e.id === id)?.name || 'Employee';
     
     try {
-      const { error } = await supabase
-        .from('employees')
-        .delete()
-        .eq('id', id);
-        
-      if (error) throw error;
-      
-      setEmployees(prev => prev.filter(employee => employee.id !== id));
+      const filteredEmployees = employees.filter(employee => employee.id !== id);
+      setEmployees(filteredEmployees);
+      localStorage.setItem('ems-employees', JSON.stringify(filteredEmployees));
       toast.success(`${employeeName} has been removed`);
     } catch (error) {
       console.error('Error deleting employee:', error);
       toast.error('Failed to delete employee');
-      
-      // Fallback to local state if Supabase fails
-      setEmployees(prev => prev.filter(employee => employee.id !== id));
     }
   };
 

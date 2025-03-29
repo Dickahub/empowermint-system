@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { form } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 
 export interface Task {
   id: string;
@@ -42,11 +42,16 @@ const TaskSlip: React.FC<TaskSlipProps> = ({
   onTaskAdd
 }) => {
   const { user, isAdmin, isManager } = useAuth();
-  const [newTask, setNewTask] = useState({
+  const [newTask, setNewTask] = useState<{
+    title: string;
+    description: string;
+    dueDate: string;
+    priority: 'low' | 'medium' | 'high';
+  }>({
     title: '',
     description: '',
     dueDate: '',
-    priority: 'medium' as const
+    priority: 'medium'
   });
   const [isAddingTask, setIsAddingTask] = useState(false);
 
@@ -169,9 +174,9 @@ const TaskSlip: React.FC<TaskSlipProps> = ({
                     <label className="text-sm font-medium">Priority</label>
                     <Select 
                       value={newTask.priority}
-                      onValueChange={(value) => setNewTask({
+                      onValueChange={(value: 'low' | 'medium' | 'high') => setNewTask({
                         ...newTask, 
-                        priority: value as 'low' | 'medium' | 'high'
+                        priority: value
                       })}
                     >
                       <SelectTrigger>
