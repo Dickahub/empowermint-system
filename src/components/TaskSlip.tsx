@@ -45,6 +45,7 @@ interface TaskSlipProps {
   tasks: Task[];
   onTaskUpdate?: (taskId: string, updates: Partial<Task>) => void;
   onTaskAdd?: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onTaskDelete?: (taskId: string) => void;
   readonly?: boolean;
 }
 
@@ -54,7 +55,8 @@ const TaskSlip: React.FC<TaskSlipProps> = ({
   tasks,
   onTaskUpdate,
   onTaskAdd,
-  readonly
+  onTaskDelete,
+  readonly = false
 }) => {
   const { user, isAdmin, isManager } = useAuth();
   const [newTask, setNewTask] = useState<{
@@ -69,9 +71,11 @@ const TaskSlip: React.FC<TaskSlipProps> = ({
     priority: 'medium'
   });
   const [isAddingTask, setIsAddingTask] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const canAddTasks = isAdmin || isManager;
   const canUpdateTasks = isAdmin || isManager || user?.id === employeeId;
+  const canDeleteTasks = isAdmin && onTaskDelete;
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
@@ -133,6 +137,14 @@ const TaskSlip: React.FC<TaskSlipProps> = ({
       });
       
       setIsAddingTask(false);
+    }
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    if (canDeleteTasks && onTaskDelete) {
+      if (window.confirm('Are you sure you want to delete this task?')) {
+        onTaskDelete(taskId);
+      }
     }
   };
 
@@ -256,35 +268,50 @@ const TaskSlip: React.FC<TaskSlipProps> = ({
                   <TableCell>{getStatusBadge(task.status)}</TableCell>
                   {canUpdateTasks && (
                     <TableCell>
-                      {user?.id === employeeId && task.status !== 'completed' && task.status !== 'cancelled' && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => updateTaskStatus(task.id, 'completed')}
-                        >
-                          Mark Complete
-                        </Button>
-                      )}
-                      
-                      {(isAdmin || isManager) && task.status !== 'cancelled' && (
-                        <Select 
-                          value={task.status}
-                          onValueChange={(value) => updateTaskStatus(
-                            task.id, 
-                            value as 'pending' | 'in_progress' | 'completed' | 'cancelled'
-                          )}
-                        >
-                          <SelectTrigger className="h-8 w-[130px]">
-                            <SelectValue placeholder="Update Status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="in_progress">In Progress</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
+                      <div className="flex items-center space-x-2">
+                        {/* For regular employees - show a simple complete button */}
+                        {user?.id === employeeId && !isAdmin && !isManager && task.status !== 'completed' && task.status !== 'cancelled' && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => updateTaskStatus(task.id, 'completed')}
+                          >
+                            Mark Complete
+                          </Button>
+                        )}
+                        
+                        {/* For admins/managers - show the full status dropdown */}
+                        {(isAdmin || isManager) && (
+                          <Select 
+                            value={task.status}
+                            onValueChange={(value) => updateTaskStatus(
+                              task.id, 
+                              value as 'pending' | 'in_progress' | 'completed' | 'cancelled'
+                            )}
+                          >
+                            <SelectTrigger className="h-8 w-[130px]">
+                              <SelectValue placeholder="Update Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="in_progress">In Progress</SelectItem>
+                              <SelectItem value="completed">Completed</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+
+                        {/* Delete button for admins */}
+                        {canDeleteTasks && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteTask(task.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   )}
                 </TableRow>

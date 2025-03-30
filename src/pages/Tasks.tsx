@@ -15,13 +15,16 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { User, ClipboardList } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { User, ClipboardList, PlusCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Tasks = () => {
   const { user, isAdmin, isManager } = useAuth();
   const { tasks, getEmployeeTasks, getAssignedTasks, addTask, updateTask, deleteTask } = useTasks();
   const { employees } = useEmployees();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
+  const navigate = useNavigate();
 
   // If the user is not an admin or manager, set the selected employee to the current user
   useEffect(() => {
@@ -43,10 +46,25 @@ const Tasks = () => {
   // Get tasks assigned by the current user (for managers/admins)
   const assignedTasks = user ? getAssignedTasks(user.id) : [];
 
+  // Function to handle adding a new employee (for admins)
+  const handleAddEmployee = () => {
+    navigate('/employees');
+  };
+
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
-        <h1 className="text-2xl font-bold">Task Management</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Task Management</h1>
+          
+          {/* Direct access to add employees for admins */}
+          {isAdmin && (
+            <Button onClick={handleAddEmployee}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Add New Employee
+            </Button>
+          )}
+        </div>
         
         <div className="grid grid-cols-1 gap-6">
           {/* Employee selector for admins and managers */}
@@ -89,6 +107,8 @@ const Tasks = () => {
               tasks={employeeTasks}
               onTaskUpdate={updateTask}
               onTaskAdd={addTask}
+              onTaskDelete={isAdmin ? deleteTask : undefined}
+              readonly={false}
             />
           )}
           
