@@ -71,7 +71,7 @@ const Tasks = () => {
                       <SelectLabel>Employees</SelectLabel>
                       {employees.map(employee => (
                         <SelectItem key={employee.id} value={employee.id}>
-                          {employee.name} - {employee.position || employee.role}
+                          {employee.name} - {employee.position || employee.department}
                         </SelectItem>
                       ))}
                     </SelectGroup>
