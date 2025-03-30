@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useEmployees, getDepartments } from "@/context/EmployeeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -9,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { PlusCircle, Search, Edit, Trash, Eye, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Employees = () => {
   const { employees, deleteEmployee } = useEmployees();
@@ -48,6 +50,17 @@ const Employees = () => {
     }
   };
 
+  const handleAddEmployee = () => {
+    try {
+      // Navigate to the employee creation page
+      navigate("/employees/new");
+      console.log("Navigating to /employees/new");
+    } catch (error) {
+      console.error("Navigation error:", error);
+      toast.error("Failed to navigate to the employee creation page");
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-4">
@@ -55,7 +68,7 @@ const Employees = () => {
           <h1 className="text-2xl font-bold tracking-tight">Employees</h1>
           {isAdmin && (
             <Button 
-              onClick={() => navigate("/employees/new")}
+              onClick={handleAddEmployee}
               className="bg-ems-primary hover:bg-ems-secondary"
             >
               <UserPlus className="mr-2 h-4 w-4" />
@@ -72,7 +85,7 @@ const Employees = () => {
               <p className="text-sm text-slate-500">Add new employees to the system</p>
             </div>
             <Button 
-              onClick={() => navigate("/employees/new")}
+              onClick={handleAddEmployee}
               size="lg"
               className="bg-ems-primary hover:bg-ems-secondary"
             >
@@ -175,7 +188,7 @@ const Employees = () => {
         {isAdmin && (
           <div className="fixed bottom-6 right-6 md:hidden">
             <Button 
-              onClick={() => navigate("/employees/new")} 
+              onClick={handleAddEmployee} 
               size="icon"
               className="h-14 w-14 rounded-full shadow-lg bg-ems-primary hover:bg-ems-secondary"
             >

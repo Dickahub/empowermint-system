@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +23,8 @@ import Index from "./pages/Index";
 import Leaves from "./pages/Leaves";
 import Payroll from "./pages/Payroll";
 import Tasks from "./pages/Tasks";
+import EmployeeForm from "./pages/EmployeeForm";
+import EmployeeDetail from "./pages/EmployeeDetail";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +92,33 @@ const AppRoutes = () => {
         element={
           <ManagerRoute>
             <Employees />
+          </ManagerRoute>
+        } 
+      />
+      
+      <Route 
+        path="/employees/new" 
+        element={
+          <AdminRoute>
+            <EmployeeForm />
+          </AdminRoute>
+        } 
+      />
+      
+      <Route 
+        path="/employees/edit/:id" 
+        element={
+          <AdminRoute>
+            <EmployeeForm />
+          </AdminRoute>
+        } 
+      />
+      
+      <Route 
+        path="/employees/:id" 
+        element={
+          <ManagerRoute>
+            <EmployeeDetail />
           </ManagerRoute>
         } 
       />
