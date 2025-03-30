@@ -159,7 +159,7 @@ const Employees = () => {
                           <Button 
                             variant="ghost" 
                             size="icon"
-                            onClick={() => handleDeleteTask(employee.id)}
+                            onClick={() => handleDeleteEmployee(employee.id)}
                           >
                             <Trash className="h-4 w-4 text-ems-danger" />
                           </Button>
