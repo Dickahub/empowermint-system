@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useEmployees } from "@/context/EmployeeContext";
@@ -13,7 +12,6 @@ import PayrollSlip from "@/components/PayrollSlip";
 import TaskSlip, { Task } from "@/components/TaskSlip";
 import { toast } from "sonner";
 
-// Mock tasks for demonstration
 const mockTasks: Task[] = [
   {
     id: "1",
@@ -41,13 +39,12 @@ const mockTasks: Task[] = [
   }
 ];
 
-// Mock payroll items
 const mockPayrollItems = [
-  { description: "Transport Allowance", amount: 50000, type: "earning" as const },
-  { description: "Performance Bonus", amount: 100000, type: "earning" as const },
-  { description: "Health Insurance", amount: 25000, type: "deduction" as const },
-  { description: "Income Tax", amount: 75000, type: "deduction" as const },
-  { description: "Social Security", amount: 35000, type: "deduction" as const },
+  { description: 'Transport Allowance', amount: 50000, type: 'earning' as const },
+  { description: 'Performance Bonus', amount: 100000, type: 'earning' as const },
+  { description: 'Health Insurance', amount: 25000, type: 'deduction' as const },
+  { description: 'Income Tax', amount: 75000, type: 'deduction' as const },
+  { description: 'Social Security', amount: 35000, type: 'deduction' as const },
 ];
 
 const Profile = () => {
@@ -60,27 +57,21 @@ const Profile = () => {
     return <div>Loading...</div>;
   }
 
-  // Get user's full employee record
   const employeeRecord = employees.find(emp => emp.id === user.id);
   
-  // Get user's attendance history
   const attendanceRecords = getEmployeeAttendance(user.id);
   
-  // Sort attendance records by date (most recent first)
   const sortedAttendanceRecords = [...attendanceRecords].sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
   
-  // Get only the 10 most recent records
   const recentAttendanceRecords = sortedAttendanceRecords.slice(0, 10);
 
-  // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, "MMM dd, yyyy");
   };
   
-  // Calculate working hours (if both clockIn and clockOut are present)
   const calculateHours = (clockIn: string | null, clockOut: string | null) => {
     if (!clockIn || !clockOut) return "-";
     
@@ -100,7 +91,6 @@ const Profile = () => {
     return `${hours}h ${minutes}m`;
   };
 
-  // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'present':
@@ -116,7 +106,6 @@ const Profile = () => {
     }
   };
 
-  // Update task status
   const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
     setTasks(prev => 
       prev.map(task => 
@@ -126,7 +115,6 @@ const Profile = () => {
     toast.success("Task updated successfully");
   };
 
-  // Add new task
   const handleAddTask = (newTask: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
     const task: Task = {
       ...newTask,
@@ -139,7 +127,6 @@ const Profile = () => {
     toast.success("Task added successfully");
   };
 
-  // Get current month and year for payroll
   const currentMonth = format(new Date(), "MMMM");
   const currentYear = format(new Date(), "yyyy");
 
