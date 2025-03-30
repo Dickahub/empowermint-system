@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useEmployees, getDepartments } from "@/context/EmployeeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -172,6 +171,18 @@ const Employees = () => {
             </TableBody>
           </Table>
         </div>
+        
+        {isAdmin && (
+          <div className="fixed bottom-6 right-6 md:hidden">
+            <Button 
+              onClick={() => navigate("/employees/new")} 
+              size="icon"
+              className="h-14 w-14 rounded-full shadow-lg bg-ems-primary hover:bg-ems-secondary"
+            >
+              <UserPlus className="h-6 w-6" />
+            </Button>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
