@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Search, Edit, Trash, Eye } from "lucide-react";
+import { PlusCircle, Search, Edit, Trash, Eye, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Employees = () => {
@@ -54,14 +54,34 @@ const Employees = () => {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold tracking-tight">Employees</h1>
-          <Button 
-            onClick={() => navigate("/employees/new")}
-            className="bg-ems-primary hover:bg-ems-secondary"
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Employee
-          </Button>
+          {isAdmin && (
+            <Button 
+              onClick={() => navigate("/employees/new")}
+              className="bg-ems-primary hover:bg-ems-secondary"
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add New Employee
+            </Button>
+          )}
         </div>
+
+        {/* Prominent Add Employee button for admins at the top */}
+        {isAdmin && (
+          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 flex items-center justify-between">
+            <div>
+              <h3 className="font-medium text-slate-900">Employee Management</h3>
+              <p className="text-sm text-slate-500">Add new employees to the system</p>
+            </div>
+            <Button 
+              onClick={() => navigate("/employees/new")}
+              size="lg"
+              className="bg-ems-primary hover:bg-ems-secondary"
+            >
+              <PlusCircle className="mr-2 h-5 w-5" />
+              Add Employee
+            </Button>
+          </div>
+        )}
 
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
@@ -139,7 +159,7 @@ const Employees = () => {
                           <Button 
                             variant="ghost" 
                             size="icon"
-                            onClick={() => handleDeleteEmployee(employee.id)}
+                            onClick={() => handleDeleteTask(employee.id)}
                           >
                             <Trash className="h-4 w-4 text-ems-danger" />
                           </Button>
