@@ -1,41 +1,65 @@
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEmployees } from "@/context/EmployeeContext";
 import { useAuth } from "@/context/AuthContext";
+import { useLeaves } from "@/context/LeaveContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, Trash, Phone, Mail, Calendar, CreditCard } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { format } from "date-fns";
+import { ArrowLeft, Mail, Phone, Calendar, MapPin, Briefcase } from "lucide-react";
+import PayrollSlip from "@/components/PayrollSlip";
+import LeaveManagement from "@/components/LeaveManagement";
 
 const EmployeeDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getEmployee, deleteEmployee } = useEmployees();
+  const { getEmployee } = useEmployees();
   const { isAdmin } = useAuth();
-  const [employee, setEmployee] = useState(getEmployee(id || ""));
-
-  useEffect(() => {
-    if (!id) {
-      navigate("/employees");
-      return;
-    }
-
-    const employeeData = getEmployee(id);
-    if (!employeeData) {
-      toast.error("Employee not found");
-      navigate("/employees");
-      return;
-    }
-
-    setEmployee(employeeData);
-  }, [id, getEmployee, navigate]);
-
+  const { leaves, addLeave, updateLeaveStatus } = useLeaves();
+  
+  const employee = getEmployee(id || "");
+  
   if (!employee) {
-    return null;
+    return (
+      <DashboardLayout>
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate("/employees")}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-2xl font-bold tracking-tight">Employee Not Found</h1>
+          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <p>The requested employee does not exist or has been removed.</p>
+              <Button 
+                className="mt-4"
+                onClick={() => navigate("/employees")}
+              >
+                Back to Employees
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
   }
+
+  // Filtering leaves for this specific employee
+  const employeeLeaves = leaves.filter(leave => leave.employeeId === employee.id);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return format(date, "MMM dd, yyyy");
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -50,17 +74,25 @@ const EmployeeDetail = () => {
     }
   };
 
-  const handleDeleteEmployee = () => {
-    if (window.confirm('Are you sure you want to delete this employee?')) {
-      deleteEmployee(employee.id);
-      toast.success(`${employee.name} has been removed`);
-      navigate("/employees");
-    }
+  const handleLeaveRequest = (leaveData: Omit<any, 'id' | 'createdAt'>) => {
+    addLeave(leaveData);
   };
 
-  const formatSalary = (salary: number) => {
-    return `${salary.toLocaleString()} FCFA`;
+  const handleLeaveUpdate = (leaveId: string, status: 'approved' | 'rejected') => {
+    updateLeaveStatus(leaveId, status);
   };
+
+  // Mock payroll items for demonstration
+  const mockPayrollItems = [
+    { description: 'Transport Allowance', amount: 35000, type: 'earning' as const },
+    { description: 'Performance Bonus', amount: 50000, type: 'earning' as const },
+    { description: 'Health Insurance', amount: 20000, type: 'deduction' as const },
+    { description: 'Income Tax', amount: employee.salary * 0.1, type: 'deduction' as const },
+    { description: 'Social Security', amount: 25000, type: 'deduction' as const },
+  ];
+
+  const currentMonth = format(new Date(), "MMMM");
+  const currentYear = format(new Date(), "yyyy");
 
   return (
     <DashboardLayout>
@@ -73,117 +105,142 @@ const EmployeeDetail = () => {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl font-bold tracking-tight">Employee Details</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Employee Profile</h1>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4">
-          <Card className="w-full md:w-2/3">
-            <CardHeader>
-              <div className="flex justify-between items-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <Card>
+              <CardHeader className="text-center">
                 <CardTitle>{employee.name}</CardTitle>
-                <div className="flex gap-2">
-                  {isAdmin && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/employees/edit/${employee.id}`)}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-ems-danger hover:bg-red-50"
-                        onClick={handleDeleteEmployee}
-                      >
-                        <Trash className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
-                    </>
-                  )}
+                <p className="text-gray-500">{employee.position}</p>
+                {getStatusBadge(employee.status)}
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center">
+                    <Mail className="h-4 w-4 mr-2 text-ems-primary" />
+                    <span>{employee.email}</span>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Phone className="h-4 w-4 mr-2 text-ems-primary" />
+                    <span>{employee.phone}</span>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Briefcase className="h-4 w-4 mr-2 text-ems-primary" />
+                    <span>{employee.department}</span>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-2 text-ems-primary" />
+                    <span>Joined {formatDate(employee.joinDate)}</span>
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Position</h3>
-                  <p className="mt-1 text-base font-medium">{employee.position}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Department</h3>
-                  <p className="mt-1 text-base font-medium">{employee.department}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                  <div className="mt-1">{getStatusBadge(employee.status)}</div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Join Date</h3>
-                  <p className="mt-1 text-base font-medium flex items-center">
-                    <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                    {new Date(employee.joinDate).toLocaleDateString()}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                  <p className="mt-1 text-base font-medium flex items-center">
-                    <Mail className="h-4 w-4 mr-1 text-gray-400" />
-                    {employee.email}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Phone</h3>
-                  <p className="mt-1 text-base font-medium flex items-center">
-                    <Phone className="h-4 w-4 mr-1 text-gray-400" />
-                    {employee.phone}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Salary</h3>
-                  <p className="mt-1 text-base font-medium flex items-center">
-                    <CreditCard className="h-4 w-4 mr-1 text-gray-400" />
-                    {formatSalary(employee.salary)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="w-full md:w-1/3">
-            <CardHeader>
-              <CardTitle>Employee Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Employee ID</h3>
-                <p className="mt-1 text-sm">{employee.id}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Employment Status</h3>
-                <p className="mt-1 text-sm">{employee.status === 'active' ? 'Full-time' : employee.status === 'inactive' ? 'Terminated' : 'On Leave'}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Employment Duration</h3>
-                <p className="mt-1 text-sm">
-                  {(() => {
-                    const startDate = new Date(employee.joinDate);
-                    const today = new Date();
-                    const years = today.getFullYear() - startDate.getFullYear();
-                    const months = today.getMonth() - startDate.getMonth();
-                    const totalMonths = years * 12 + months;
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="md:col-span-2">
+            <Tabs defaultValue="info">
+              <TabsList className="mb-4">
+                <TabsTrigger value="info">Details</TabsTrigger>
+                <TabsTrigger value="payroll">Payroll</TabsTrigger>
+                <TabsTrigger value="leaves">Leave Management</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="info">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Employee Information</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h3 className="font-medium text-gray-600 mb-2">Basic Information</h3>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="text-sm text-gray-500">Full Name</label>
+                            <div className="font-medium">{employee.name}</div>
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-500">Email</label>
+                            <div className="font-medium">{employee.email}</div>
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-500">Phone</label>
+                            <div className="font-medium">{employee.phone}</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-medium text-gray-600 mb-2">Employment Information</h3>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="text-sm text-gray-500">Position</label>
+                            <div className="font-medium">{employee.position}</div>
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-500">Department</label>
+                            <div className="font-medium">{employee.department}</div>
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-500">Join Date</label>
+                            <div className="font-medium">{formatDate(employee.joinDate)}</div>
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-500">Status</label>
+                            <div className="font-medium">{getStatusBadge(employee.status)}</div>
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-500">Salary</label>
+                            <div className="font-medium">{employee.salary.toLocaleString()} FCFA</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     
-                    if (totalMonths < 0) return "Not started yet";
-                    if (totalMonths === 0) return "Less than a month";
-                    if (totalMonths < 12) return `${totalMonths} month${totalMonths > 1 ? 's' : ''}`;
-                    return `${Math.floor(totalMonths / 12)} year${Math.floor(totalMonths / 12) > 1 ? 's' : ''} ${totalMonths % 12 > 0 ? `and ${totalMonths % 12} month${totalMonths % 12 > 1 ? 's' : ''}` : ''}`;
-                  })()}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+                    {isAdmin && (
+                      <div className="mt-6 flex justify-end">
+                        <Button
+                          onClick={() => navigate(`/employees/edit/${employee.id}`)}
+                          className="bg-ems-primary hover:bg-ems-secondary"
+                        >
+                          Edit Employee
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="payroll">
+                <PayrollSlip
+                  employeeName={employee.name}
+                  employeeId={employee.id}
+                  department={employee.department}
+                  position={employee.position}
+                  month={currentMonth}
+                  year={currentYear}
+                  baseSalary={employee.salary}
+                  items={mockPayrollItems}
+                />
+              </TabsContent>
+              
+              <TabsContent value="leaves">
+                <LeaveManagement 
+                  employeeId={employee.id}
+                  employeeName={employee.name}
+                  leaves={employeeLeaves}
+                  onLeaveAdd={handleLeaveRequest}
+                  onLeaveUpdate={handleLeaveUpdate}
+                  isManagerView={true}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
     </DashboardLayout>
