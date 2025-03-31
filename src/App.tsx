@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -194,8 +195,8 @@ const AppRoutes = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <EmployeeProvider>
+      <EmployeeProvider>
+        <AuthProvider>
           <AttendanceProvider>
             <TaskProvider>
               <LeaveProvider>
@@ -207,8 +208,8 @@ const App = () => (
               </LeaveProvider>
             </TaskProvider>
           </AttendanceProvider>
-        </EmployeeProvider>
-      </AuthProvider>
+        </AuthProvider>
+      </EmployeeProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
