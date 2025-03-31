@@ -67,10 +67,10 @@ const Login = () => {
                       className="text-sm text-ems-accent hover:underline"
                       onClick={(e) => {
                         e.preventDefault();
-                        alert("For demonstration, use:\nEmail: admin@example.com, manager@example.com, or employee@example.com\nPassword: password");
+                        alert("Use your email registered by admin with password: 'password'");
                       }}
                     >
-                      Demo login info
+                      Need help?
                     </a>
                   </div>
                   <Input
@@ -92,13 +92,14 @@ const Login = () => {
             </form>
           </CardContent>
           <CardFooter className="flex flex-col">
-            <p className="text-sm text-gray-500 text-center">
+            <p className="text-sm text-gray-500 text-center mb-2">
               For demonstration, use:
             </p>
-            <ul className="text-xs text-gray-500 mt-2 space-y-1">
-              <li>Admin: admin@example.com / password</li>
-              <li>Manager: manager@example.com / password</li>
-              <li>Employee: employee@example.com / password</li>
+            <ul className="text-xs text-gray-500 space-y-1">
+              <li>Admin: admin@secel.cm / password</li>
+              <li>Manager: manager@secel.cm / password</li>
+              <li>Employee: employee@secel.cm / password</li>
+              <li className="font-semibold">Or use any employee email added by admin with password: 'password'</li>
             </ul>
           </CardFooter>
         </Card>

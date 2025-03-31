@@ -2,6 +2,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
+import { useEmployees } from './EmployeeContext';
 
 export type UserRole = 'admin' | 'manager' | 'employee';
 
@@ -55,6 +56,7 @@ const mockUsers: User[] = [
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const { employees } = useEmployees();
   
   // Check for saved user on initial load
   useEffect(() => {
@@ -87,13 +89,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // For now, we'll just use mock users since the Supabase tables may not be set up yet
-      const foundUser = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+      // First check for admin/manager/employee from mock users
+      const foundMockUser = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
       
-      if (foundUser && password === 'password') {
-        setUser(foundUser);
-        localStorage.setItem('ems-user', JSON.stringify(foundUser));
-        toast.success(`Welcome back, ${foundUser.name}!`);
+      if (foundMockUser && password === 'password') {
+        setUser(foundMockUser);
+        localStorage.setItem('ems-user', JSON.stringify(foundMockUser));
+        toast.success(`Welcome back, ${foundMockUser.name}!`);
+        return true;
+      }
+      
+      // If not found in mock users, check for employees created by admin
+      const foundEmployee = employees.find(e => e.email.toLowerCase() === email.toLowerCase());
+      
+      if (foundEmployee && password === 'password') {
+        // Determine role based on position (this is simplistic; you might want more robust logic)
+        let role: UserRole = 'employee';
+        if (foundEmployee.position.toLowerCase().includes('manager')) {
+          role = 'manager';
+        } else if (foundEmployee.position.toLowerCase().includes('admin')) {
+          role = 'admin';
+        }
+        
+        const userObj: User = {
+          id: foundEmployee.id,
+          name: foundEmployee.name,
+          email: foundEmployee.email,
+          role: role,
+          department: foundEmployee.department,
+          position: foundEmployee.position
+        };
+        
+        setUser(userObj);
+        localStorage.setItem('ems-user', JSON.stringify(userObj));
+        toast.success(`Welcome, ${foundEmployee.name}!`);
         return true;
       }
       

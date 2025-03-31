@@ -5,16 +5,21 @@ import { useAuth } from "@/context/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     // Redirect to the appropriate page
-    if (isAuthenticated) {
-      navigate("/dashboard");
+    if (isAuthenticated && user) {
+      if (user.role === 'admin' || user.role === 'manager') {
+        navigate("/dashboard");
+      } else {
+        // Direct regular employees to their profile page
+        navigate("/profile");
+      }
     } else {
       navigate("/login");
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
