@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
@@ -56,7 +55,7 @@ const mockUsers: User[] = [
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const { employees } = useEmployees();
+  const { employees, getEmployeeByEmail } = useEmployees();
   
   // Check for saved user on initial load
   useEffect(() => {
@@ -100,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       // If not found in mock users, check for employees created by admin
-      const foundEmployee = employees.find(e => e.email.toLowerCase() === email.toLowerCase());
+      const foundEmployee = getEmployeeByEmail(email);
       
       if (foundEmployee && password === 'password') {
         // Determine role based on position (this is simplistic; you might want more robust logic)

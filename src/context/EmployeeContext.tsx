@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
@@ -18,11 +17,12 @@ export interface Employee {
 
 interface EmployeeContextProps {
   employees: Employee[];
+  loading: boolean;
   addEmployee: (employee: Omit<Employee, 'id'>) => void;
-  updateEmployee: (id: string, employee: Partial<Employee>) => void;
+  updateEmployee: (id: string, updatedEmployee: Partial<Employee>) => void;
   deleteEmployee: (id: string) => void;
   getEmployee: (id: string) => Employee | undefined;
-  loading: boolean;
+  getEmployeeByEmail: (email: string) => Employee | undefined;
 }
 
 const EmployeeContext = createContext<EmployeeContextProps | undefined>(undefined);
@@ -154,10 +154,10 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const updateEmployee = async (id: string, updatedFields: Partial<Employee>) => {
+  const updateEmployee = async (id: string, updatedEmployee: Partial<Employee>) => {
     try {
       const updatedEmployees = employees.map(employee => 
-        employee.id === id ? { ...employee, ...updatedFields } : employee
+        employee.id === id ? { ...employee, ...updatedEmployee } : employee
       );
       
       setEmployees(updatedEmployees);
@@ -184,18 +184,23 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const getEmployee = (id: string) => {
-    return employees.find(employee => employee.id === id);
+    return employees.find(emp => emp.id === id);
+  };
+  
+  const getEmployeeByEmail = (email: string) => {
+    return employees.find(emp => emp.email.toLowerCase() === email.toLowerCase());
   };
 
   return (
     <EmployeeContext.Provider
       value={{
         employees,
+        loading,
         addEmployee,
         updateEmployee,
         deleteEmployee,
         getEmployee,
-        loading,
+        getEmployeeByEmail,
       }}
     >
       {children}

@@ -1,316 +1,202 @@
-import React, { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { useEmployees } from "@/context/EmployeeContext";
-import { useAttendance } from "@/context/AttendanceContext";
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
+import React, { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useEmployees } from '@/context/EmployeeContext';
+import { useLeaves } from '@/context/LeaveContext';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { format } from "date-fns";
-import { Calendar, Mail, Phone, MapPin, Briefcase, Calendar as CalendarIcon } from "lucide-react";
-import PayrollSlip from "@/components/PayrollSlip";
-import TaskSlip, { Task } from "@/components/TaskSlip";
-import { toast } from "sonner";
-
-const mockTasks: Task[] = [
-  {
-    id: "1",
-    title: "Complete quarterly report",
-    description: "Prepare and submit the Q3 financial analysis report",
-    assignedTo: "3", // Employee ID
-    assignedBy: "2", // Manager ID
-    dueDate: "2023-10-15",
-    priority: "high",
-    status: "in_progress",
-    createdAt: "2023-09-28T10:00:00Z",
-    updatedAt: "2023-10-01T14:30:00Z"
-  },
-  {
-    id: "2",
-    title: "Update client database",
-    description: "Ensure all client information is current and accurate",
-    assignedTo: "3", // Employee ID
-    assignedBy: "1", // Admin ID
-    dueDate: "2023-10-10",
-    priority: "medium",
-    status: "pending",
-    createdAt: "2023-09-30T09:15:00Z",
-    updatedAt: "2023-09-30T09:15:00Z"
-  }
-];
-
-const mockPayrollItems = [
-  { description: 'Transport Allowance', amount: 50000, type: 'earning' as const },
-  { description: 'Performance Bonus', amount: 100000, type: 'earning' as const },
-  { description: 'Health Insurance', amount: 25000, type: 'deduction' as const },
-  { description: 'Income Tax', amount: 75000, type: 'deduction' as const },
-  { description: 'Social Security', amount: 35000, type: 'deduction' as const },
-];
+import { format } from 'date-fns';
+import { Mail, User, Phone, Briefcase, Calendar } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import LeaveManagement from '@/components/LeaveManagement';
+import PayrollSlip from '@/components/PayrollSlip';
 
 const Profile = () => {
   const { user } = useAuth();
-  const { employees } = useEmployees();
-  const { getEmployeeAttendance } = useAttendance();
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const { getEmployeeByEmail } = useEmployees();
+  const { leaves, addLeave } = useLeaves();
   
+  const employee = user?.email ? getEmployeeByEmail(user.email) : null;
+
   if (!user) {
-    return <div>Loading...</div>;
+    return (
+      <DashboardLayout>
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardContent className="pt-6">
+              <p>You need to be logged in to view your profile.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
   }
 
-  const employeeRecord = employees.find(emp => emp.id === user.id);
-  
-  const attendanceRecords = getEmployeeAttendance(user.id);
-  
-  const sortedAttendanceRecords = [...attendanceRecords].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
-  });
-  
-  const recentAttendanceRecords = sortedAttendanceRecords.slice(0, 10);
+  if (!employee) {
+    return (
+      <DashboardLayout>
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardContent className="pt-6">
+              <p>Employee record not found. Please contact your administrator.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return format(date, "MMM dd, yyyy");
-  };
-  
-  const calculateHours = (clockIn: string | null, clockOut: string | null) => {
-    if (!clockIn || !clockOut) return "-";
-    
-    const [inHours, inMinutes] = clockIn.split(":").map(Number);
-    const [outHours, outMinutes] = clockOut.split(":").map(Number);
-    
-    const inTime = inHours * 60 + inMinutes;
-    const outTime = outHours * 60 + outMinutes;
-    
-    const diffMinutes = outTime - inTime;
-    
-    if (diffMinutes <= 0) return "-";
-    
-    const hours = Math.floor(diffMinutes / 60);
-    const minutes = diffMinutes % 60;
-    
-    return `${hours}h ${minutes}m`;
+    return isNaN(date.getTime()) ? 'Invalid date' : format(date, 'MMM dd, yyyy');
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'present':
-        return <Badge className="bg-ems-success">Present</Badge>;
-      case 'absent':
-        return <Badge className="bg-ems-danger">Absent</Badge>;
-      case 'late':
-        return <Badge className="bg-ems-warning">Late</Badge>;
-      case 'half_day':
-        return <Badge variant="outline" className="text-ems-warning border-ems-warning">Half Day</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
+  // Filter leaves for this employee
+  const employeeLeaves = leaves.filter(leave => leave.employeeId === employee.id);
+
+  // Function to handle leave requests
+  const handleLeaveRequest = (leaveData: Omit<any, 'id' | 'createdAt'>) => {
+    addLeave(leaveData);
   };
 
-  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
-    setTasks(prev => 
-      prev.map(task => 
-        task.id === taskId ? { ...task, ...updates } : task
-      )
-    );
-    toast.success("Task updated successfully");
-  };
-
-  const handleAddTask = (newTask: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const task: Task = {
-      ...newTask,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    setTasks(prev => [...prev, task]);
-    toast.success("Task added successfully");
-  };
+  // Mock payroll items for demonstration
+  const mockPayrollItems = [
+    { description: 'Transport Allowance', amount: 35000, type: 'earning' as const },
+    { description: 'Performance Bonus', amount: 50000, type: 'earning' as const },
+    { description: 'Health Insurance', amount: 20000, type: 'deduction' as const },
+    { description: 'Income Tax', amount: employee.salary * 0.1, type: 'deduction' as const },
+    { description: 'Social Security', amount: 25000, type: 'deduction' as const },
+  ];
 
   const currentMonth = format(new Date(), "MMMM");
   const currentYear = format(new Date(), "yyyy");
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold tracking-tight">My Profile</h1>
+      <div className="container mx-auto p-6">
+        <h1 className="text-2xl font-bold mb-6">My Profile</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <Card>
               <CardHeader className="text-center">
-                <CardTitle>{user.name}</CardTitle>
-                <CardDescription>{employeeRecord?.position || user.role}</CardDescription>
+                <div className="flex justify-center mb-4">
+                  <Avatar className="h-24 w-24">
+                    <AvatarFallback className="bg-ems-primary text-white text-2xl">
+                      {employee.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <CardTitle>{employee.name}</CardTitle>
+                <p className="text-gray-500">{employee.position}</p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center">
                     <Mail className="h-4 w-4 mr-2 text-ems-primary" />
-                    <span>{user.email}</span>
+                    <span>{employee.email}</span>
                   </div>
                   
-                  {employeeRecord?.phone && (
-                    <div className="flex items-center">
-                      <Phone className="h-4 w-4 mr-2 text-ems-primary" />
-                      <span>{employeeRecord.phone}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center">
+                    <Phone className="h-4 w-4 mr-2 text-ems-primary" />
+                    <span>{employee.phone}</span>
+                  </div>
                   
                   <div className="flex items-center">
                     <Briefcase className="h-4 w-4 mr-2 text-ems-primary" />
-                    <span>{employeeRecord?.department || user.department || "Not assigned"}</span>
+                    <span>{employee.department}</span>
                   </div>
                   
-                  {employeeRecord?.joinDate && (
-                    <div className="flex items-center">
-                      <CalendarIcon className="h-4 w-4 mr-2 text-ems-primary" />
-                      <span>Joined {formatDate(employeeRecord.joinDate)}</span>
-                    </div>
-                  )}
-                  
-                  {employeeRecord?.status && (
-                    <div className="flex items-center">
-                      <div className="h-4 w-4 mr-2" />
-                      <Badge className={`
-                        ${employeeRecord.status === 'active' ? 'bg-ems-success' : ''}
-                        ${employeeRecord.status === 'inactive' ? 'bg-ems-danger' : ''}
-                        ${employeeRecord.status === 'on_leave' ? 'bg-ems-warning' : ''}
-                      `}>
-                        {employeeRecord.status.replace('_', ' ').toUpperCase()}
-                      </Badge>
-                    </div>
-                  )}
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-2 text-ems-primary" />
+                    <span>Joined {formatDate(employee.joinDate)}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
           
           <div className="md:col-span-2">
-            <Tabs defaultValue="attendance">
+            <Tabs defaultValue="info">
               <TabsList className="mb-4">
-                <TabsTrigger value="attendance">Recent Attendance</TabsTrigger>
-                <TabsTrigger value="info">Personal Information</TabsTrigger>
-                <TabsTrigger value="tasks">Tasks</TabsTrigger>
-                <TabsTrigger value="payroll">Payroll</TabsTrigger>
+                <TabsTrigger value="info">Personal Info</TabsTrigger>
+                <TabsTrigger value="leaves">My Leave Requests</TabsTrigger>
+                <TabsTrigger value="payroll">My Payroll</TabsTrigger>
               </TabsList>
-              
-              <TabsContent value="attendance">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Attendance History</CardTitle>
-                    <CardDescription>Your recent attendance records</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {recentAttendanceRecords.length === 0 ? (
-                      <div className="text-center py-6 text-gray-500">
-                        No attendance records found
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {recentAttendanceRecords.map((record) => (
-                          <div key={record.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-                            <div className="flex items-center">
-                              <Calendar className="h-4 w-4 mr-2 text-ems-primary" />
-                              <div>
-                                <div className="font-medium">{formatDate(record.date)}</div>
-                                <div className="text-sm text-gray-500">
-                                  {record.clockIn && `In: ${record.clockIn}`} 
-                                  {record.clockIn && record.clockOut && " | "} 
-                                  {record.clockOut && `Out: ${record.clockOut}`}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-3">
-                              {record.clockIn && record.clockOut && (
-                                <span className="text-sm">{calculateHours(record.clockIn, record.clockOut)}</span>
-                              )}
-                              {getStatusBadge(record.status)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
               
               <TabsContent value="info">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Personal Information</CardTitle>
-                    <CardDescription>Your personal and employment details</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-6">
                       <div>
                         <h3 className="font-medium text-gray-600 mb-2">Basic Information</h3>
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label className="text-sm text-gray-500">Full Name</label>
-                            <div className="font-medium">{user.name}</div>
+                            <div className="font-medium">{employee.name}</div>
                           </div>
                           <div>
                             <label className="text-sm text-gray-500">Email</label>
-                            <div className="font-medium">{user.email}</div>
+                            <div className="font-medium">{employee.email}</div>
                           </div>
-                          {employeeRecord?.phone && (
-                            <div>
-                              <label className="text-sm text-gray-500">Phone</label>
-                              <div className="font-medium">{employeeRecord.phone}</div>
-                            </div>
-                          )}
+                          <div>
+                            <label className="text-sm text-gray-500">Phone</label>
+                            <div className="font-medium">{employee.phone}</div>
+                          </div>
                         </div>
                       </div>
                       
                       <div>
                         <h3 className="font-medium text-gray-600 mb-2">Employment Information</h3>
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label className="text-sm text-gray-500">Position</label>
-                            <div className="font-medium">{employeeRecord?.position || "Not specified"}</div>
+                            <div className="font-medium">{employee.position}</div>
                           </div>
                           <div>
                             <label className="text-sm text-gray-500">Department</label>
-                            <div className="font-medium">{employeeRecord?.department || "Not specified"}</div>
+                            <div className="font-medium">{employee.department}</div>
                           </div>
-                          {employeeRecord?.joinDate && (
-                            <div>
-                              <label className="text-sm text-gray-500">Join Date</label>
-                              <div className="font-medium">{formatDate(employeeRecord.joinDate)}</div>
-                            </div>
-                          )}
-                          {employeeRecord?.salary && (
-                            <div>
-                              <label className="text-sm text-gray-500">Salary</label>
-                              <div className="font-medium">{employeeRecord.salary.toLocaleString()} FCFA</div>
-                            </div>
-                          )}
+                          <div>
+                            <label className="text-sm text-gray-500">Join Date</label>
+                            <div className="font-medium">{formatDate(employee.joinDate)}</div>
+                          </div>
+                          <div>
+                            <label className="text-sm text-gray-500">Salary</label>
+                            <div className="font-medium">{employee.salary.toLocaleString()} FCFA</div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </TabsContent>
-              
-              <TabsContent value="tasks">
-                <TaskSlip
-                  employeeId={user.id}
-                  employeeName={user.name}
-                  tasks={tasks.filter(task => task.assignedTo === user.id)}
-                  onTaskUpdate={handleTaskUpdate}
-                  onTaskAdd={handleAddTask}
+
+              <TabsContent value="leaves">
+                <LeaveManagement 
+                  employeeId={employee.id}
+                  employeeName={employee.name}
+                  leaves={employeeLeaves}
+                  onLeaveAdd={handleLeaveRequest}
+                  isManagerView={false}
                 />
               </TabsContent>
               
               <TabsContent value="payroll">
                 <PayrollSlip
-                  employeeName={user.name}
-                  employeeId={user.id}
-                  department={employeeRecord?.department || "Not assigned"}
-                  position={employeeRecord?.position || "Not specified"}
+                  employeeName={employee.name}
+                  employeeId={employee.id}
+                  department={employee.department}
+                  position={employee.position}
                   month={currentMonth}
                   year={currentYear}
-                  baseSalary={employeeRecord?.salary || 0}
+                  baseSalary={employee.salary}
                   items={mockPayrollItems}
                 />
               </TabsContent>

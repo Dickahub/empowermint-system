@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,7 +61,7 @@ const LeaveManagement: React.FC<LeaveManagementProps> = ({
     reason: ''
   });
 
-  const canRequestLeave = !isManagerView && onLeaveAdd;
+  const canRequestLeave = onLeaveAdd && (isManagerView ? false : true);
   const canApproveLeave = isManagerView && (isAdmin || isManager) && onLeaveUpdate;
 
   const getStatusBadge = (status: string) => {
@@ -115,7 +114,6 @@ const LeaveManagement: React.FC<LeaveManagementProps> = ({
         status: 'pending'
       });
       
-      // Reset form
       setNewLeave({
         type: 'annual',
         startDate: '',
@@ -133,8 +131,7 @@ const LeaveManagement: React.FC<LeaveManagementProps> = ({
     }
   };
 
-  // Filter leaves if we're in employee view
-  const displayLeaves = isManagerView 
+  const displayLeaves = isManagerView && !employeeId 
     ? leaves 
     : leaves.filter(leave => leave.employeeId === employeeId);
 
@@ -142,7 +139,7 @@ const LeaveManagement: React.FC<LeaveManagementProps> = ({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
         <CardTitle className="text-xl">
-          {isManagerView ? 'Employee Leave Requests' : `Leave Requests for ${employeeName || 'You'}`}
+          {isManagerView && !employeeId ? 'Employee Leave Requests' : `Leave Requests for ${employeeName || 'You'}`}
         </CardTitle>
         {canRequestLeave && (
           <Dialog open={isAddingLeave} onOpenChange={setIsAddingLeave}>
