@@ -9,6 +9,7 @@ import { EmployeeProvider } from "@/context/EmployeeContext";
 import { AttendanceProvider } from "@/context/AttendanceContext";
 import { TaskProvider } from "@/context/TaskContext";
 import { LeaveProvider } from "@/context/LeaveContext";
+import { PerformanceProvider } from "@/context/PerformanceContext";
 
 // Pages
 import Login from "./pages/Login";
@@ -25,6 +26,7 @@ import Payroll from "./pages/Payroll";
 import Tasks from "./pages/Tasks";
 import EmployeeForm from "./pages/EmployeeForm";
 import EmployeeDetail from "./pages/EmployeeDetail";
+import Performance from "./pages/Performance";
 
 const queryClient = new QueryClient();
 
@@ -178,6 +180,15 @@ const AppRoutes = () => {
       />
       
       <Route 
+        path="/performance" 
+        element={
+          <ManagerRoute>
+            <Performance />
+          </ManagerRoute>
+        } 
+      />
+      
+      <Route 
         path="/profile" 
         element={
           <ProtectedRoute>
@@ -200,11 +211,13 @@ const App = () => (
           <AttendanceProvider>
             <TaskProvider>
               <LeaveProvider>
-                <Toaster />
-                <SonnerToaster position="top-right" />
-                <BrowserRouter>
-                  <AppRoutes />
-                </BrowserRouter>
+                <PerformanceProvider>
+                  <Toaster />
+                  <SonnerToaster position="top-right" />
+                  <BrowserRouter>
+                    <AppRoutes />
+                  </BrowserRouter>
+                </PerformanceProvider>
               </LeaveProvider>
             </TaskProvider>
           </AttendanceProvider>

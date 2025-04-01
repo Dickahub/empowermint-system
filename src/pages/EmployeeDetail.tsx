@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEmployees } from "@/context/EmployeeContext";
@@ -13,12 +12,13 @@ import { format } from "date-fns";
 import { ArrowLeft, Mail, Phone, Calendar, MapPin, Briefcase } from "lucide-react";
 import PayrollSlip from "@/components/PayrollSlip";
 import LeaveManagement from "@/components/LeaveManagement";
+import PerformanceRating from "@/components/PerformanceRating";
 
 const EmployeeDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getEmployee } = useEmployees();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isManager } = useAuth();
   const { leaves, addLeave, updateLeaveStatus } = useLeaves();
   
   const employee = getEmployee(id || "");
@@ -53,7 +53,6 @@ const EmployeeDetail = () => {
     );
   }
 
-  // Filtering leaves for this specific employee
   const employeeLeaves = leaves.filter(leave => leave.employeeId === employee.id);
 
   const formatDate = (dateString: string) => {
@@ -82,7 +81,6 @@ const EmployeeDetail = () => {
     updateLeaveStatus(leaveId, status);
   };
 
-  // Mock payroll items for demonstration
   const mockPayrollItems = [
     { description: 'Transport Allowance', amount: 35000, type: 'earning' as const },
     { description: 'Performance Bonus', amount: 50000, type: 'earning' as const },
@@ -146,6 +144,7 @@ const EmployeeDetail = () => {
             <Tabs defaultValue="info">
               <TabsList className="mb-4">
                 <TabsTrigger value="info">Details</TabsTrigger>
+                <TabsTrigger value="performance">Performance</TabsTrigger>
                 <TabsTrigger value="payroll">Payroll</TabsTrigger>
                 <TabsTrigger value="leaves">Leave Management</TabsTrigger>
               </TabsList>
@@ -214,6 +213,10 @@ const EmployeeDetail = () => {
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
+              
+              <TabsContent value="performance">
+                <PerformanceRating employeeId={employee.id} employeeName={employee.name} />
               </TabsContent>
               
               <TabsContent value="payroll">
