@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -89,7 +90,7 @@ const mockEmployees: Employee[] = [
 export const getDepartments = (): string[] => {
   // Get all departments from localStorage or mock data
   const storedEmployees = localStorage.getItem('ems-employees');
-  const employees = storedEmployees ? JSON.parse(storedEmployees) : mockEmployees;
+  const employees: Employee[] = storedEmployees ? JSON.parse(storedEmployees) : mockEmployees;
   
   // Extract unique departments
   const departments = Array.from(
