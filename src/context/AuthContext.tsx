@@ -1,162 +1,116 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'sonner';
-import { supabase } from "@/integrations/supabase/client";
 import { useEmployees } from './EmployeeContext';
-
-export type UserRole = 'admin' | 'manager' | 'employee';
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
-  department?: string;
-  position?: string;
+  role: 'admin' | 'manager' | 'employee';
 }
 
 interface AuthContextProps {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isManager: boolean;
+  login: (email: string, password: string) => void;
+  logout: () => void;
+  loading: boolean;
 }
 
+// Create the context
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-// Mock users for development purposes - updated for SECEL Sarl
-const mockUsers: User[] = [
+// Mock users for development
+const mockUsers = [
   {
     id: '1',
     name: 'Admin User',
-    email: 'admin@secel.cm',
-    role: 'admin',
-    department: 'General Management Department',
-    position: 'System Administrator',
+    email: 'admin@example.com',
+    password: 'password',
+    role: 'admin' as const,
   },
   {
     id: '2',
     name: 'Manager User',
-    email: 'manager@secel.cm',
-    role: 'manager',
-    department: 'Marketing Department',
-    position: 'Marketing Manager',
+    email: 'manager@example.com',
+    password: 'password',
+    role: 'manager' as const,
   },
   {
     id: '3',
     name: 'Employee User',
-    email: 'employee@secel.cm',
-    role: 'employee',
-    department: 'Financial Department',
-    position: 'Accountant',
+    email: 'employee@example.com',
+    password: 'password',
+    role: 'employee' as const,
   },
 ];
 
+// Provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const { employees, getEmployeeByEmail } = useEmployees();
-  
-  // Check for saved user on initial load
+  const [loading, setLoading] = useState(true);
+  const { getEmployeeByEmail } = useEmployees();
+
+  // Check if user is already logged in
   useEffect(() => {
-    const checkAuth = async () => {
-      // First try to get session from Supabase
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        try {
-          // We're using local data instead of Supabase for now
-          const savedUser = localStorage.getItem('ems-user');
-          if (savedUser) {
-            setUser(JSON.parse(savedUser));
-            return;
-          }
-        } catch (error) {
-          console.error('Error getting user data:', error);
-        }
-      }
-      
-      // If no session or error, fall back to local storage
-      const savedUser = localStorage.getItem('ems-user');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
-      }
-    };
-    
-    checkAuth();
+    const storedUser = localStorage.getItem('ems-user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    try {
-      // First check for admin/manager/employee from mock users
-      const foundMockUser = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+  // Check permissions
+  const isAdmin = user?.role === 'admin';
+  const isManager = user?.role === 'admin' || user?.role === 'manager';
+  const isAuthenticated = !!user;
+
+  // Login function
+  const login = (email: string, password: string) => {
+    // In a real app, this would be an API call
+    const foundUser = mockUsers.find(
+      (u) => u.email === email && u.password === password
+    );
+
+    if (foundUser) {
+      const { password, ...userWithoutPassword } = foundUser;
+      setUser(userWithoutPassword);
+      localStorage.setItem('ems-user', JSON.stringify(userWithoutPassword));
+      toast.success('Login successful');
       
-      if (foundMockUser && password === 'password') {
-        setUser(foundMockUser);
-        localStorage.setItem('ems-user', JSON.stringify(foundMockUser));
-        toast.success(`Welcome back, ${foundMockUser.name}!`);
-        return true;
+      // Verify if employee exists in the system
+      const employeeExists = getEmployeeByEmail(email);
+      if (!employeeExists && userWithoutPassword.role === 'employee') {
+        toast.warning('Your employee profile is incomplete. Please contact HR.');
       }
       
-      // If not found in mock users, check for employees created by admin
-      const foundEmployee = getEmployeeByEmail(email);
-      
-      if (foundEmployee && password === 'password') {
-        // Determine role based on position (this is simplistic; you might want more robust logic)
-        let role: UserRole = 'employee';
-        if (foundEmployee.position.toLowerCase().includes('manager')) {
-          role = 'manager';
-        } else if (foundEmployee.position.toLowerCase().includes('admin')) {
-          role = 'admin';
-        }
-        
-        const userObj: User = {
-          id: foundEmployee.id,
-          name: foundEmployee.name,
-          email: foundEmployee.email,
-          role: role,
-          department: foundEmployee.department,
-          position: foundEmployee.position
-        };
-        
-        setUser(userObj);
-        localStorage.setItem('ems-user', JSON.stringify(userObj));
-        toast.success(`Welcome, ${foundEmployee.name}!`);
-        return true;
-      }
-      
+      return true;
+    } else {
       toast.error('Invalid email or password');
-      return false;
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error('An error occurred during login');
       return false;
     }
   };
 
-  const logout = async () => {
-    try {
-      // Try to sign out of Supabase
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error('Error signing out of Supabase:', error);
-    }
-    
-    // Always clear local state
+  // Logout function
+  const logout = () => {
     setUser(null);
     localStorage.removeItem('ems-user');
-    toast.success('You have been logged out');
+    toast.success('Logged out successfully');
   };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        login, 
-        logout, 
-        isAuthenticated: !!user,
-        isAdmin: user?.role === 'admin',
-        isManager: user?.role === 'manager' || user?.role === 'admin',
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        isAdmin,
+        isManager,
+        login,
+        logout,
+        loading,
       }}
     >
       {children}
@@ -164,6 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

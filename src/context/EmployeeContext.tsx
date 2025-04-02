@@ -1,6 +1,6 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'sonner';
-import { supabase } from "@/integrations/supabase/client";
 
 export interface Employee {
   id: string;
@@ -12,116 +12,101 @@ export interface Employee {
   joinDate: string;
   status: 'active' | 'inactive' | 'on_leave';
   salary: number;
-  manager?: string;
 }
 
 interface EmployeeContextProps {
   employees: Employee[];
-  loading: boolean;
   addEmployee: (employee: Omit<Employee, 'id'>) => void;
-  updateEmployee: (id: string, updatedEmployee: Partial<Employee>) => void;
+  updateEmployee: (id: string, employee: Partial<Employee>) => void;
   deleteEmployee: (id: string) => void;
   getEmployee: (id: string) => Employee | undefined;
   getEmployeeByEmail: (email: string) => Employee | undefined;
+  loading: boolean;
 }
 
+// Create the context
 const EmployeeContext = createContext<EmployeeContextProps | undefined>(undefined);
 
-// Cameroon departments
-const DEPARTMENTS = [
-  'General Management Department',
-  'Administrative Department',
-  'Financial Department',
-  'Logistics Department',
-  'Consulting Department',
-  'Marketing Department',
-  'Service Center Department',
-  'Training Center Department'
-];
-
-// Mock data with Cameroonian phone numbers and FCFA currency
+// Mock data
 const mockEmployees: Employee[] = [
   {
     id: '1',
-    name: 'John Doe',
-    email: 'john.doe@secel.cm',
-    phone: '+237 699 123 456',
-    department: 'General Management Department',
-    position: 'General Manager',
-    joinDate: '2020-01-15',
+    name: 'Admin User',
+    email: 'admin@example.com',
+    phone: '+237 123 456 789',
+    department: 'Administrative Department',
+    position: 'Administrator',
+    joinDate: '2022-01-15',
     status: 'active',
-    salary: 1500000, // In FCFA
+    salary: 1500000,
   },
   {
     id: '2',
-    name: 'Jane Smith',
-    email: 'jane.smith@secel.cm',
-    phone: '+237 677 987 654',
+    name: 'Manager User',
+    email: 'manager@example.com',
+    phone: '+237 123 456 790',
     department: 'Marketing Department',
-    position: 'Marketing Director',
-    joinDate: '2019-03-10',
+    position: 'Marketing Manager',
+    joinDate: '2022-02-01',
     status: 'active',
     salary: 1200000,
   },
   {
     id: '3',
-    name: 'Robert Johnson',
-    email: 'robert.johnson@secel.cm',
-    phone: '+237 698 456 789',
+    name: 'Employee User',
+    email: 'employee@example.com',
+    phone: '+237 123 456 791',
     department: 'Financial Department',
-    position: 'Financial Analyst',
-    joinDate: '2021-05-22',
+    position: 'Accountant',
+    joinDate: '2022-03-10',
     status: 'active',
     salary: 800000,
   },
   {
     id: '4',
-    name: 'Emily Davis',
-    email: 'emily.davis@secel.cm',
-    phone: '+237 652 234 567',
-    department: 'Administrative Department',
-    position: 'HR Manager',
-    joinDate: '2018-11-05',
-    status: 'on_leave',
-    salary: 950000,
+    name: 'John Doe',
+    email: 'john@example.com',
+    phone: '+237 123 456 792',
+    department: 'Marketing Department',
+    position: 'Marketing Specialist',
+    joinDate: '2022-04-15',
+    status: 'active',
+    salary: 750000,
   },
   {
     id: '5',
-    name: 'Michael Wilson',
-    email: 'michael.wilson@secel.cm',
-    phone: '+237 671 876 543',
+    name: 'Michael Smith',
+    email: 'michael@example.com',
+    phone: '+237 123 456 793',
     department: 'Service Center Department',
-    position: 'Service Representative',
-    joinDate: '2021-02-18',
-    status: 'active',
-    salary: 750000,
-  }
+    position: 'Customer Service Rep',
+    joinDate: '2022-05-20',
+    status: 'on_leave',
+    salary: 650000,
+  },
 ];
 
-export const getDepartments = () => DEPARTMENTS;
-
+// Create the provider component
 export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load initial data
+  // Load mock data or from localStorage on initial render
   useEffect(() => {
     const fetchEmployees = async () => {
       setLoading(true);
       try {
-        // For now, just use mock data since the Supabase tables might not be ready
         const storedEmployees = localStorage.getItem('ems-employees');
         if (storedEmployees) {
           setEmployees(JSON.parse(storedEmployees));
         } else {
+          // Use mock data for initial setup
           setEmployees(mockEmployees);
           localStorage.setItem('ems-employees', JSON.stringify(mockEmployees));
         }
       } catch (error) {
         console.error('Error fetching employees:', error);
         toast.error('Failed to load employee data');
-        
-        // Fall back to mock data if needed
         setEmployees(mockEmployees);
       } finally {
         setLoading(false);
@@ -138,45 +123,40 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [employees]);
 
-  const addEmployee = async (employee: Omit<Employee, 'id'>) => {
-    const newEmployee = {
-      ...employee,
-      id: Date.now().toString(), // Generate a simple unique ID
-    };
-    
+  const addEmployee = (employee: Omit<Employee, 'id'>) => {
     try {
-      setEmployees(prev => [...prev, newEmployee as Employee]);
-      localStorage.setItem('ems-employees', JSON.stringify([...employees, newEmployee]));
-      toast.success(`${employee.name} has been added`);
+      const newEmployee: Employee = {
+        ...employee,
+        id: Date.now().toString(),
+      };
+      
+      setEmployees(prevEmployees => [...prevEmployees, newEmployee]);
+      toast.success('Employee added successfully');
     } catch (error) {
       console.error('Error adding employee:', error);
       toast.error('Failed to add employee');
     }
   };
 
-  const updateEmployee = async (id: string, updatedEmployee: Partial<Employee>) => {
+  const updateEmployee = (id: string, updatedData: Partial<Employee>) => {
     try {
       const updatedEmployees = employees.map(employee => 
-        employee.id === id ? { ...employee, ...updatedEmployee } : employee
+        employee.id === id ? { ...employee, ...updatedData } : employee
       );
       
       setEmployees(updatedEmployees);
-      localStorage.setItem('ems-employees', JSON.stringify(updatedEmployees));
-      toast.success(`Employee information updated`);
+      toast.success('Employee updated successfully');
     } catch (error) {
       console.error('Error updating employee:', error);
       toast.error('Failed to update employee');
     }
   };
 
-  const deleteEmployee = async (id: string) => {
-    const employeeName = employees.find(e => e.id === id)?.name || 'Employee';
-    
+  const deleteEmployee = (id: string) => {
     try {
       const filteredEmployees = employees.filter(employee => employee.id !== id);
       setEmployees(filteredEmployees);
-      localStorage.setItem('ems-employees', JSON.stringify(filteredEmployees));
-      toast.success(`${employeeName} has been removed`);
+      toast.success('Employee deleted successfully');
     } catch (error) {
       console.error('Error deleting employee:', error);
       toast.error('Failed to delete employee');
@@ -184,23 +164,24 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const getEmployee = (id: string) => {
-    return employees.find(emp => emp.id === id);
-  };
-  
-  const getEmployeeByEmail = (email: string) => {
-    return employees.find(emp => emp.email.toLowerCase() === email.toLowerCase());
+    return employees.find(employee => employee.id === id);
   };
 
+  const getEmployeeByEmail = (email: string) => {
+    return employees.find(employee => employee.email.toLowerCase() === email.toLowerCase());
+  };
+
+  // Provide the context value
   return (
     <EmployeeContext.Provider
       value={{
         employees,
-        loading,
         addEmployee,
         updateEmployee,
         deleteEmployee,
         getEmployee,
         getEmployeeByEmail,
+        loading,
       }}
     >
       {children}
@@ -208,6 +189,7 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 };
 
+// Create a custom hook to use the context
 export const useEmployees = () => {
   const context = useContext(EmployeeContext);
   if (context === undefined) {
