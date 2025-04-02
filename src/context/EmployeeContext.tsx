@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -85,6 +84,20 @@ const mockEmployees: Employee[] = [
     salary: 650000,
   },
 ];
+
+// Helper function to get unique departments
+export const getDepartments = (): string[] => {
+  // Get all departments from localStorage or mock data
+  const storedEmployees = localStorage.getItem('ems-employees');
+  const employees = storedEmployees ? JSON.parse(storedEmployees) : mockEmployees;
+  
+  // Extract unique departments
+  const departments = Array.from(
+    new Set(employees.map((emp: Employee) => emp.department))
+  ).sort();
+  
+  return departments;
+};
 
 // Create the provider component
 export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

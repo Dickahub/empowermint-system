@@ -15,7 +15,7 @@ interface AuthContextProps {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isManager: boolean;
-  login: (email: string, password: string) => void;
+  login: (email: string, password: string) => boolean; // Changed return type to boolean
   logout: () => void;
   loading: boolean;
 }
@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAuthenticated = !!user;
 
   // Login function
-  const login = (email: string, password: string) => {
+  const login = (email: string, password: string): boolean => {
     // In a real app, this would be an API call
     const foundUser = mockUsers.find(
       (u) => u.email === email && u.password === password
