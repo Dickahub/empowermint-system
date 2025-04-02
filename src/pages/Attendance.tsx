@@ -14,7 +14,6 @@ import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { fr } from "date-fns/locale";
 
 const Attendance = () => {
   const { user, isAdmin, isManager } = useAuth();
@@ -29,7 +28,7 @@ const Attendance = () => {
   // Get employee name by ID
   const getEmployeeName = (id: string) => {
     const employee = employees.find(emp => emp.id === id);
-    return employee ? employee.name : "Inconnu";
+    return employee ? employee.name : "Unknown";
   };
 
   // Filter attendance records based on date and employee filter
@@ -61,13 +60,13 @@ const Attendance = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'present':
-        return <Badge className="bg-ems-success">Présent</Badge>;
+        return <Badge className="bg-ems-success">Present</Badge>;
       case 'absent':
         return <Badge className="bg-ems-danger">Absent</Badge>;
       case 'late':
-        return <Badge className="bg-ems-warning">En retard</Badge>;
+        return <Badge className="bg-ems-warning">Late</Badge>;
       case 'half_day':
-        return <Badge variant="outline" className="text-ems-warning border-ems-warning">Demi-journée</Badge>;
+        return <Badge variant="outline" className="text-ems-warning border-ems-warning">Half-day</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -76,7 +75,7 @@ const Attendance = () => {
   // Format date for display
   const formatDisplayDate = (date: Date | undefined) => {
     if (!date) return "";
-    return format(date, "d MMMM yyyy", { locale: fr });
+    return format(date, "d MMMM yyyy");
   };
 
   // Check if date is today
@@ -86,7 +85,7 @@ const Attendance = () => {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-2xl font-bold tracking-tight">Présence</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Attendance</h1>
           
           {isToday && (
             <Button 
@@ -97,17 +96,17 @@ const Attendance = () => {
               {!hasClockIn ? (
                 <>
                   <Clock className="mr-2 h-4 w-4" />
-                  Pointer l'arrivée
+                  Clock In
                 </>
               ) : !hasClockOut ? (
                 <>
                   <Clock className="mr-2 h-4 w-4" />
-                  Pointer le départ
+                  Clock Out
                 </>
               ) : (
                 <>
                   <Check className="mr-2 h-4 w-4" />
-                  Terminé
+                  Completed
                 </>
               )}
             </Button>
@@ -120,7 +119,7 @@ const Attendance = () => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="flex gap-2">
                   <CalendarIcon className="h-4 w-4" />
-                  {selectedDate ? formatDisplayDate(selectedDate) : "Sélectionner une date"}
+                  {selectedDate ? formatDisplayDate(selectedDate) : "Select a date"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
@@ -129,23 +128,22 @@ const Attendance = () => {
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   initialFocus
-                  locale={fr}
                 />
               </PopoverContent>
             </Popover>
             
             {isToday && (
-              <Badge className="bg-ems-accent">Aujourd'hui</Badge>
+              <Badge className="bg-ems-accent">Today</Badge>
             )}
           </div>
           
           {(isAdmin || isManager) && (
             <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
               <SelectTrigger className="w-full md:w-[240px]">
-                <SelectValue placeholder="Tous les employés" />
+                <SelectValue placeholder="All employees" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tous les employés</SelectItem>
+                <SelectItem value="all">All employees</SelectItem>
                 {employees.map((emp) => (
                   <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
                 ))}
@@ -158,10 +156,10 @@ const Attendance = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Employé</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Heure d'arrivée</TableHead>
-                <TableHead>Heure de départ</TableHead>
+                <TableHead>Employee</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Clock In Time</TableHead>
+                <TableHead>Clock Out Time</TableHead>
                 <TableHead>Notes</TableHead>
               </TableRow>
             </TableHeader>
@@ -169,7 +167,7 @@ const Attendance = () => {
               {filteredRecords.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                    Aucun enregistrement de présence trouvé pour cette date
+                    No attendance records found for this date
                   </TableCell>
                 </TableRow>
               ) : (
@@ -193,7 +191,7 @@ const Attendance = () => {
                       ) : (
                         <span className="flex items-center text-gray-400">
                           <X className="mr-1 h-4 w-4" /> 
-                          Non pointé
+                          Not clocked in
                         </span>
                       )}
                     </TableCell>
@@ -206,7 +204,7 @@ const Attendance = () => {
                       ) : (
                         <span className="flex items-center text-gray-400">
                           <X className="mr-1 h-4 w-4" /> 
-                          Non pointé
+                          Not clocked out
                         </span>
                       )}
                     </TableCell>

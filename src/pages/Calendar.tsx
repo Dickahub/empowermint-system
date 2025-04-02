@@ -1,7 +1,6 @@
 
 import React, { useState } from "react";
 import { format, isToday, parseISO, isValid, addMonths, subMonths } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -26,34 +25,34 @@ type Event = {
 const initialEvents: Event[] = [
   {
     id: "1",
-    title: "Réunion d'équipe",
+    title: "Team Meeting",
     date: "2023-06-15",
     type: "meeting",
     employees: ["1", "2", "3"],
-    description: "Réunion hebdomadaire pour discuter des progrès du projet"
+    description: "Weekly meeting to discuss project progress"
   },
   {
     id: "2",
-    title: "Formation professionnelle",
+    title: "Professional Training",
     date: "2023-06-20",
     type: "training",
     employees: ["2", "4"],
-    description: "Formation sur les nouvelles technologies"
+    description: "Training on new technologies"
   },
   {
     id: "3",
-    title: "Jour férié - Fête Nationale",
+    title: "Public Holiday - National Day",
     date: "2023-05-20",
     type: "holiday",
-    description: "Fête Nationale du Cameroun"
+    description: "Cameroon National Day"
   },
   {
     id: "4",
-    title: "Congé annuel",
+    title: "Annual Leave",
     date: "2023-06-10",
     type: "leave",
     employees: ["3"],
-    description: "Congé annuel approuvé"
+    description: "Approved annual leave"
   }
 ];
 
@@ -67,7 +66,7 @@ const Calendar = () => {
   
   const getEmployeeName = (id: string) => {
     const employee = employees.find(emp => emp.id === id);
-    return employee ? employee.name : "Inconnu";
+    return employee ? employee.name : "Unknown";
   };
   
   const getFilteredEvents = () => {
@@ -98,15 +97,15 @@ const Calendar = () => {
   const getEventBadge = (type: string) => {
     switch (type) {
       case "meeting":
-        return <Badge className="bg-blue-500">Réunion</Badge>;
+        return <Badge className="bg-blue-500">Meeting</Badge>;
       case "holiday":
-        return <Badge className="bg-red-500">Férié</Badge>;
+        return <Badge className="bg-red-500">Holiday</Badge>;
       case "leave":
-        return <Badge className="bg-amber-500">Congé</Badge>;
+        return <Badge className="bg-amber-500">Leave</Badge>;
       case "training":
-        return <Badge className="bg-green-500">Formation</Badge>;
+        return <Badge className="bg-green-500">Training</Badge>;
       default:
-        return <Badge>Autre</Badge>;
+        return <Badge>Other</Badge>;
     }
   };
   
@@ -154,12 +153,12 @@ const Calendar = () => {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-2xl font-bold tracking-tight">Calendrier</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Calendar</h1>
           
           {(isAdmin || isManager) && (
             <Button className="bg-ems-primary">
               <CalendarIcon className="mr-2 h-4 w-4" />
-              Ajouter un événement
+              Add Event
             </Button>
           )}
         </div>
@@ -169,7 +168,7 @@ const Calendar = () => {
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Calendrier</CardTitle>
+                  <CardTitle className="text-lg">Calendar</CardTitle>
                   <div className="flex space-x-2">
                     <Button variant="outline" size="icon" onClick={handlePrevMonth}>
                       <ChevronLeft className="h-4 w-4" />
@@ -187,44 +186,43 @@ const Calendar = () => {
                   onSelect={setSelectedDate}
                   month={displayMonth}
                   onMonthChange={setDisplayMonth}
-                  locale={fr}
-                  className="rounded-md border"
+                  className="rounded-md border pointer-events-auto"
                 />
                 
                 <div className="mt-6 space-y-2">
-                  <div className="text-sm font-medium">Filtrer par type</div>
+                  <div className="text-sm font-medium">Filter by type</div>
                   <Select value={filterType} onValueChange={setFilterType}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Tous les types" />
+                      <SelectValue placeholder="All types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous les types</SelectItem>
-                      <SelectItem value="meeting">Réunions</SelectItem>
-                      <SelectItem value="holiday">Jours fériés</SelectItem>
-                      <SelectItem value="leave">Congés</SelectItem>
-                      <SelectItem value="training">Formations</SelectItem>
+                      <SelectItem value="all">All types</SelectItem>
+                      <SelectItem value="meeting">Meetings</SelectItem>
+                      <SelectItem value="holiday">Holidays</SelectItem>
+                      <SelectItem value="leave">Leaves</SelectItem>
+                      <SelectItem value="training">Trainings</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div className="mt-6">
-                  <div className="text-sm font-medium mb-2">Légende</div>
+                  <div className="text-sm font-medium mb-2">Legend</div>
                   <div className="space-y-2">
                     <div className="flex items-center">
                       <div className="w-3 h-3 rounded-full bg-blue-500 mr-2" />
-                      <span className="text-sm">Réunion</span>
+                      <span className="text-sm">Meeting</span>
                     </div>
                     <div className="flex items-center">
                       <div className="w-3 h-3 rounded-full bg-red-500 mr-2" />
-                      <span className="text-sm">Jour férié</span>
+                      <span className="text-sm">Holiday</span>
                     </div>
                     <div className="flex items-center">
                       <div className="w-3 h-3 rounded-full bg-amber-500 mr-2" />
-                      <span className="text-sm">Congé</span>
+                      <span className="text-sm">Leave</span>
                     </div>
                     <div className="flex items-center">
                       <div className="w-3 h-3 rounded-full bg-green-500 mr-2" />
-                      <span className="text-sm">Formation</span>
+                      <span className="text-sm">Training</span>
                     </div>
                   </div>
                 </div>
@@ -237,15 +235,15 @@ const Calendar = () => {
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">
                   {selectedDate 
-                    ? `Événements: ${format(selectedDate, "d MMMM yyyy", { locale: fr })}`
-                    : "Tous les événements"}
+                    ? `Events: ${format(selectedDate, "d MMMM yyyy")}`
+                    : "All events"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {getFilteredEvents().length === 0 ? (
                     <div className="text-center py-6 text-gray-500">
-                      Aucun événement {selectedDate ? "pour cette date" : ""} {filterType && "de ce type"}
+                      No events {selectedDate ? "for this date" : ""} {filterType && "of this type"}
                     </div>
                   ) : (
                     getFilteredEvents().map(event => (
@@ -260,7 +258,7 @@ const Calendar = () => {
                             <div className="mt-2">
                               {getEventBadge(event.type)}
                               <span className="ml-2 text-xs">
-                                {format(parseISO(event.date), "d MMMM yyyy", { locale: fr })}
+                                {format(parseISO(event.date), "d MMMM yyyy")}
                               </span>
                             </div>
                           </div>

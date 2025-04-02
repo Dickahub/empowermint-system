@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CalendarIcon, FileText, Download, Printer } from 'lucide-react';
 import PayrollSlip from '@/components/PayrollSlip';
 
-// Mock payroll data
+// Mock payroll data updated for 2025
 const payrollData = [
   {
     id: '1',
@@ -20,7 +20,7 @@ const payrollData = [
     department: 'Financial Department',
     position: 'Accountant',
     month: 'January',
-    year: '2024',
+    year: '2025',
     baseSalary: 800000,
     totalEarnings: 825000,
     totalDeductions: 85000,
@@ -33,7 +33,7 @@ const payrollData = [
     department: 'Marketing Department',
     position: 'Marketing Manager',
     month: 'January',
-    year: '2024',
+    year: '2025',
     baseSalary: 1200000,
     totalEarnings: 1250000,
     totalDeductions: 125000,
@@ -60,7 +60,7 @@ const payrollItemsData = {
 const Payroll: React.FC = () => {
   const { user, isManager, isAdmin } = useAuth();
   const [month, setMonth] = useState('January');
-  const [year, setYear] = useState('2024');
+  const [year, setYear] = useState('2025');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPayroll, setSelectedPayroll] = useState<string | null>(null);
 
@@ -123,7 +123,7 @@ const Payroll: React.FC = () => {
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
-                    {['2022', '2023', '2024'].map((y) => (
+                    {['2023', '2024', '2025', '2026'].map((y) => (
                       <SelectItem key={y} value={y}>{y}</SelectItem>
                     ))}
                   </SelectContent>
