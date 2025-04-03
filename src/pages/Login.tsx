@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -33,9 +33,15 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-ems-primary">SECEL Sarl</h1>
-          <p className="text-gray-600 mt-2">Personnel Management System</p>
+        <div className="text-center mb-6">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/lovable-uploads/a53ff322-844e-43f7-8e6a-f633989d1f1b.png" 
+              alt="SECEL Logo" 
+              className="h-24 w-auto"
+            />
+          </div>
+          <p className="text-gray-600 mt-1">Personnel Management System</p>
         </div>
         
         <Card>
