@@ -16,7 +16,7 @@ const Dashboard = () => {
 
   // Get current user's attendance for today
   const todayAttendance = user ? getTodayAttendance(user.id) : undefined;
-  const hasClockIn = todayAttendance?.clockIn;
+  const hasClockIn = todayAttendance?.checkIns?.length > 0;
   const hasClockOut = todayAttendance?.clockOut;
 
   // Calculate dashboard stats
@@ -122,7 +122,7 @@ const Dashboard = () => {
               )}
               {hasClockIn && (
                 <div className="mt-2 text-xs text-center text-gray-500">
-                  In: {hasClockIn} {hasClockOut && `| Out: ${hasClockOut}`}
+                  In: {todayAttendance?.checkIns[0]?.time || 'Unknown'} {hasClockOut && `| Out: ${todayAttendance?.clockOut}`}
                 </div>
               )}
             </CardContent>
