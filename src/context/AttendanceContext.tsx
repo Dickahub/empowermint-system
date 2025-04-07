@@ -6,7 +6,10 @@ export interface AttendanceRecord {
   id: string;
   employeeId: string;
   date: string;
-  clockIn: string | null;
+  checkIns: {
+    time: string;
+    verified: boolean;
+  }[];
   clockOut: string | null;
   status: 'present' | 'absent' | 'late' | 'half_day';
   notes?: string;
@@ -16,6 +19,7 @@ interface AttendanceContextProps {
   attendanceRecords: AttendanceRecord[];
   clockIn: (employeeId: string) => void;
   clockOut: (employeeId: string) => void;
+  checkIn: (employeeId: string) => void;
   getEmployeeAttendance: (employeeId: string) => AttendanceRecord[];
   getTodayAttendance: (employeeId: string) => AttendanceRecord | undefined;
   addAttendanceRecord: (record: Omit<AttendanceRecord, 'id'>) => void;
@@ -37,13 +41,30 @@ const getCurrentTime = () => {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 };
 
+// Convert old format to new format
+const convertOldRecordsToNew = (oldRecords: any[]): AttendanceRecord[] => {
+  return oldRecords.map(record => {
+    if (record.checkIns) {
+      // Already in new format
+      return record;
+    }
+    
+    // Convert old format to new format
+    return {
+      ...record,
+      checkIns: record.clockIn ? [{ time: record.clockIn, verified: true }] : [],
+      // Keep clockOut as is
+    };
+  });
+};
+
 // Mock attendance data
 const mockAttendanceRecords: AttendanceRecord[] = [
   {
     id: '1',
     employeeId: '1',
     date: '2023-08-21',
-    clockIn: '09:05',
+    checkIns: [{ time: '09:05', verified: true }, { time: '09:35', verified: true }],
     clockOut: '17:30',
     status: 'present',
   },
@@ -51,7 +72,7 @@ const mockAttendanceRecords: AttendanceRecord[] = [
     id: '2',
     employeeId: '2',
     date: '2023-08-21',
-    clockIn: '08:55',
+    checkIns: [{ time: '08:55', verified: true }],
     clockOut: '17:15',
     status: 'present',
   },
@@ -59,7 +80,7 @@ const mockAttendanceRecords: AttendanceRecord[] = [
     id: '3',
     employeeId: '3',
     date: '2023-08-21',
-    clockIn: '09:20',
+    checkIns: [{ time: '09:20', verified: true }],
     clockOut: '17:45',
     status: 'late',
     notes: 'Traffic delay',
@@ -68,7 +89,7 @@ const mockAttendanceRecords: AttendanceRecord[] = [
     id: '4',
     employeeId: '4',
     date: '2023-08-21',
-    clockIn: null,
+    checkIns: [],
     clockOut: null,
     status: 'absent',
     notes: 'Sick leave',
@@ -77,7 +98,7 @@ const mockAttendanceRecords: AttendanceRecord[] = [
     id: '5',
     employeeId: '5',
     date: '2023-08-21',
-    clockIn: '09:00',
+    checkIns: [{ time: '09:00', verified: true }],
     clockOut: '13:30',
     status: 'half_day',
     notes: 'Doctor appointment',
@@ -98,7 +119,10 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const storedAttendance = localStorage.getItem('ems-attendance');
         
         if (storedAttendance) {
-          setAttendanceRecords(JSON.parse(storedAttendance));
+          const parsedRecords = JSON.parse(storedAttendance);
+          // Convert old format to new if necessary
+          const convertedRecords = convertOldRecordsToNew(parsedRecords);
+          setAttendanceRecords(convertedRecords);
         } else {
           // Use mock data for initial setup
           setAttendanceRecords(mockAttendanceRecords);
@@ -122,13 +146,38 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [attendanceRecords]);
 
+  // Set up regular check-in reminders
+  useEffect(() => {
+    if (!user) return;
+    
+    // Set up 30-minute interval reminder for check-ins during work hours
+    const checkInInterval = setInterval(() => {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      
+      // Only remind during business hours (9 AM - 5 PM) and at the top and half-past the hour
+      if (hours >= 9 && hours < 17 && (minutes === 0 || minutes === 30)) {
+        toast.info("It's time for your regular check-in!", {
+          action: {
+            label: "Check In",
+            onClick: () => user && checkIn(user.id),
+          },
+          duration: 10000 // Show for 10 seconds
+        });
+      }
+    }, 60000); // Check every minute
+    
+    return () => clearInterval(checkInInterval);
+  }, [user]);
+
   const clockIn = (employeeId: string) => {
     const today = getTodayDate();
     const existingRecord = attendanceRecords.find(
       record => record.employeeId === employeeId && record.date === today
     );
 
-    if (existingRecord && existingRecord.clockIn) {
+    if (existingRecord && existingRecord.checkIns.length > 0) {
       toast.error('You have already clocked in today');
       return;
     }
@@ -140,7 +189,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setAttendanceRecords(prev =>
         prev.map(record =>
           record.id === existingRecord.id
-            ? { ...record, clockIn: currentTime, status: 'present' }
+            ? { ...record, checkIns: [{ time: currentTime, verified: true }], status: 'present' }
             : record
         )
       );
@@ -150,7 +199,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         id: Date.now().toString(),
         employeeId,
         date: today,
-        clockIn: currentTime,
+        checkIns: [{ time: currentTime, verified: true }],
         clockOut: null,
         status: 'present',
       };
@@ -159,6 +208,33 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
     
     toast.success(`Clocked in at ${currentTime}`);
+  };
+
+  const checkIn = (employeeId: string) => {
+    const today = getTodayDate();
+    const existingRecord = attendanceRecords.find(
+      record => record.employeeId === employeeId && record.date === today
+    );
+
+    const currentTime = getCurrentTime();
+    
+    if (existingRecord) {
+      // Update existing record with a new check-in
+      setAttendanceRecords(prev =>
+        prev.map(record =>
+          record.id === existingRecord.id
+            ? { ...record, 
+                checkIns: [...record.checkIns, { time: currentTime, verified: true }],
+                status: 'present' 
+              }
+            : record
+        )
+      );
+      toast.success(`Check-in recorded at ${currentTime}`);
+    } else {
+      // No record for today, create one with this check-in
+      clockIn(employeeId);
+    }
   };
 
   const clockOut = (employeeId: string) => {
@@ -177,7 +253,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       return;
     }
 
-    if (!existingRecord.clockIn) {
+    if (existingRecord.checkIns.length === 0) {
       toast.error('You need to clock in before clocking out');
       return;
     }
@@ -231,6 +307,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         attendanceRecords,
         clockIn,
         clockOut,
+        checkIn,
         getEmployeeAttendance,
         getTodayAttendance,
         addAttendanceRecord,

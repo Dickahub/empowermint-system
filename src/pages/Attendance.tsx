@@ -6,7 +6,6 @@ import { useAuth } from "@/context/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar as CalendarIcon, Clock, Check, X, AlertCircle, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +16,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Attendance = () => {
   const { user, isAdmin, isManager } = useAuth();
-  const { attendanceRecords, clockIn, clockOut } = useAttendance();
+  const { attendanceRecords, clockIn, clockOut, checkIn } = useAttendance();
   const { employees } = useEmployees();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [employeeFilter, setEmployeeFilter] = useState<string>(user?.id || "all");
@@ -42,7 +41,7 @@ const Attendance = () => {
   const userRecord = user && attendanceRecords.find(
     record => record.employeeId === user.id && record.date === formattedDate
   );
-  const hasClockIn = userRecord?.clockIn ? true : false;
+  const hasClockIn = userRecord?.checkIns?.length > 0 || false;
   const hasClockOut = userRecord?.clockOut ? true : false;
 
   // Handler for clock in/out
@@ -54,6 +53,12 @@ const Attendance = () => {
     } else if (!hasClockOut) {
       clockOut(user.id);
     }
+  };
+
+  // Handler for regular check-in
+  const handleCheckIn = () => {
+    if (!user) return;
+    checkIn(user.id);
   };
 
   // Get status badge
@@ -88,28 +93,41 @@ const Attendance = () => {
           <h1 className="text-2xl font-bold tracking-tight">Attendance</h1>
           
           {isToday && (
-            <Button 
-              onClick={handleClockInOut}
-              className={hasClockIn ? (hasClockOut ? "bg-gray-400" : "bg-ems-warning") : "bg-ems-success"}
-              disabled={hasClockIn && hasClockOut}
-            >
-              {!hasClockIn ? (
-                <>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleClockInOut}
+                className={hasClockIn ? (hasClockOut ? "bg-gray-400" : "bg-ems-warning") : "bg-ems-success"}
+                disabled={hasClockOut}
+              >
+                {!hasClockIn ? (
+                  <>
+                    <Clock className="mr-2 h-4 w-4" />
+                    Clock In
+                  </>
+                ) : !hasClockOut ? (
+                  <>
+                    <Clock className="mr-2 h-4 w-4" />
+                    Clock Out
+                  </>
+                ) : (
+                  <>
+                    <Check className="mr-2 h-4 w-4" />
+                    Completed
+                  </>
+                )}
+              </Button>
+
+              {hasClockIn && !hasClockOut && (
+                <Button
+                  onClick={handleCheckIn}
+                  variant="outline"
+                  className="border-ems-accent text-ems-accent"
+                >
                   <Clock className="mr-2 h-4 w-4" />
-                  Clock In
-                </>
-              ) : !hasClockOut ? (
-                <>
-                  <Clock className="mr-2 h-4 w-4" />
-                  Clock Out
-                </>
-              ) : (
-                <>
-                  <Check className="mr-2 h-4 w-4" />
-                  Completed
-                </>
+                  Regular Check-in
+                </Button>
               )}
-            </Button>
+            </div>
           )}
         </div>
 
@@ -158,15 +176,16 @@ const Attendance = () => {
               <TableRow>
                 <TableHead>Employee</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Clock In Time</TableHead>
-                <TableHead>Clock Out Time</TableHead>
+                <TableHead>Clock In</TableHead>
+                <TableHead>Regular Check-ins</TableHead>
+                <TableHead>Clock Out</TableHead>
                 <TableHead>Notes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                     No attendance records found for this date
                   </TableCell>
                 </TableRow>
@@ -183,16 +202,32 @@ const Attendance = () => {
                     </TableCell>
                     <TableCell>{getStatusBadge(record.status)}</TableCell>
                     <TableCell>
-                      {record.clockIn ? (
+                      {record.checkIns && record.checkIns.length > 0 ? (
                         <span className="flex items-center text-ems-success">
                           <Check className="mr-1 h-4 w-4" /> 
-                          {record.clockIn}
+                          {record.checkIns[0].time}
                         </span>
                       ) : (
                         <span className="flex items-center text-gray-400">
                           <X className="mr-1 h-4 w-4" /> 
                           Not clocked in
                         </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {record.checkIns && record.checkIns.length > 1 ? (
+                        <div className="space-y-1">
+                          <div className="text-xs font-medium">{record.checkIns.length - 1} check-ins</div>
+                          <div className="flex flex-wrap gap-1">
+                            {record.checkIns.slice(1).map((checkIn, index) => (
+                              <Badge key={index} variant="outline" className="text-xs px-1">
+                                {checkIn.time}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
                       )}
                     </TableCell>
                     <TableCell>
