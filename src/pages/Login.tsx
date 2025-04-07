@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -97,6 +97,28 @@ const Login = () => {
               </div>
             </form>
           </CardContent>
+          <CardFooter className="flex-col space-y-2 border-t pt-3">
+            <div className="text-sm text-muted-foreground">
+              <strong>Demo Accounts</strong>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+              <div>
+                <div className="font-semibold">Admin</div>
+                <div>admin@example.com</div>
+                <div>password</div>
+              </div>
+              <div>
+                <div className="font-semibold">Manager</div>
+                <div>manager@example.com</div>
+                <div>password</div>
+              </div>
+              <div>
+                <div className="font-semibold">Employee</div>
+                <div>employee@example.com</div>
+                <div>password</div>
+              </div>
+            </div>
+          </CardFooter>
         </Card>
       </div>
     </div>
