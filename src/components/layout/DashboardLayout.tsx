@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -114,7 +115,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             >
               <Menu className="h-6 w-6" />
             </button>
-            <Link to="/dashboard" className="text-lg font-bold text-ems-primary">SECEL Sarl EMS</Link>
+            <Link to="/dashboard" className="text-lg font-bold text-ems-primary">
+              <img 
+                src="/lovable-uploads/a53ff322-844e-43f7-8e6a-f633989d1f1b.png" 
+                alt="SECEL Sarl Logo" 
+                className="h-8" 
+              />
+            </Link>
           </div>
           <div className="flex items-center gap-2">
             <DropdownMenu>
@@ -176,7 +183,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           `}
         >
           <div className="p-4 flex justify-between items-center border-b border-ems-secondary md:border-none">
-            <Link to="/dashboard" className="text-lg font-bold">SECEL Sarl</Link>
+            <Link to="/dashboard" className="text-lg font-bold">
+              <img 
+                src="/lovable-uploads/a53ff322-844e-43f7-8e6a-f633989d1f1b.png" 
+                alt="SECEL Sarl Logo" 
+                className="h-8" 
+              />
+            </Link>
             {isMobile && (
               <button onClick={closeSidebar} aria-label="Close menu">
                 <X className="h-6 w-6" />
