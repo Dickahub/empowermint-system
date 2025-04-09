@@ -12,6 +12,7 @@ export interface Employee {
   joinDate: string;
   status: 'active' | 'inactive' | 'on_leave';
   salary: number;
+  password?: string; // Optional since we don't show existing passwords
 }
 
 interface EmployeeContextProps {
@@ -39,6 +40,7 @@ const mockEmployees: Employee[] = [
     joinDate: '2022-01-15',
     status: 'active',
     salary: 1500000,
+    password: 'password', // In real app, this would be hashed
   },
   {
     id: '2',
@@ -50,6 +52,7 @@ const mockEmployees: Employee[] = [
     joinDate: '2022-02-01',
     status: 'active',
     salary: 1200000,
+    password: 'password', // In real app, this would be hashed
   },
   {
     id: '3',
@@ -61,6 +64,7 @@ const mockEmployees: Employee[] = [
     joinDate: '2022-03-10',
     status: 'active',
     salary: 800000,
+    password: 'password', // In real app, this would be hashed
   },
   {
     id: '4',
@@ -72,6 +76,7 @@ const mockEmployees: Employee[] = [
     joinDate: '2022-04-15',
     status: 'active',
     salary: 750000,
+    password: 'password', // In real app, this would be hashed
   },
   {
     id: '5',
@@ -83,6 +88,7 @@ const mockEmployees: Employee[] = [
     joinDate: '2022-05-20',
     status: 'on_leave',
     salary: 650000,
+    password: 'password', // In real app, this would be hashed
   },
 ];
 

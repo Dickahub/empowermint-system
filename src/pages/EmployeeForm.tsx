@@ -25,7 +25,8 @@ const EmployeeForm = () => {
     position: "",
     joinDate: "",
     status: "active" as "active" | "inactive" | "on_leave",
-    salary: 0
+    salary: 0,
+    password: ""
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,7 +44,8 @@ const EmployeeForm = () => {
           position: employee.position,
           joinDate: employee.joinDate,
           status: employee.status,
-          salary: employee.salary
+          salary: employee.salary,
+          password: "" // We don't store or show passwords
         });
       } else {
         toast.error("Employee not found");
@@ -72,8 +74,20 @@ const EmployeeForm = () => {
     setIsSubmitting(true);
 
     try {
+      // Make sure password is provided for new employees
+      if (!isEditMode && !formData.password) {
+        toast.error("Password is required for new employees");
+        setIsSubmitting(false);
+        return;
+      }
+
       if (isEditMode) {
-        await updateEmployee(id, formData);
+        // Don't include password in updates unless it's changed
+        const updateData = { ...formData };
+        if (!updateData.password) {
+          delete updateData.password;
+        }
+        await updateEmployee(id, updateData);
         toast.success("Employee updated successfully!");
       } else {
         await addEmployee(formData);
@@ -213,6 +227,22 @@ const EmployeeForm = () => {
                     value={formData.salary}
                     onChange={handleInputChange}
                     required
+                  />
+                </div>
+
+                {/* Password field - only required for new employees */}
+                <div className="space-y-2">
+                  <Label htmlFor="password">
+                    {isEditMode ? "Password (leave blank to keep current)" : "Password"}
+                  </Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required={!isEditMode}
+                    placeholder={isEditMode ? "••••••••" : ""}
                   />
                 </div>
               </div>

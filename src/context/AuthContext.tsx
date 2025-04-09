@@ -15,7 +15,7 @@ interface AuthContextProps {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isManager: boolean;
-  login: (email: string, password: string) => boolean; // Changed return type to boolean
+  login: (email: string, password: string) => boolean; 
   logout: () => void;
   loading: boolean;
 }
@@ -70,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Login function
   const login = (email: string, password: string): boolean => {
-    // In a real app, this would be an API call
+    // First check mock admin/manager users
     const foundUser = mockUsers.find(
       (u) => u.email === email && u.password === password
     );
@@ -80,13 +80,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(userWithoutPassword);
       localStorage.setItem('ems-user', JSON.stringify(userWithoutPassword));
       toast.success('Login successful');
+      return true;
+    } 
+    
+    // If not found in mock users, check employees
+    const employee = getEmployeeByEmail(email);
+    
+    if (employee && employee.password === password) {
+      const employeeUser: User = {
+        id: employee.id,
+        name: employee.name,
+        email: employee.email,
+        role: 'employee' as const
+      };
       
-      // Verify if employee exists in the system
-      const employeeExists = getEmployeeByEmail(email);
-      if (!employeeExists && userWithoutPassword.role === 'employee') {
-        toast.warning('Your employee profile is incomplete. Please contact HR.');
-      }
-      
+      setUser(employeeUser);
+      localStorage.setItem('ems-user', JSON.stringify(employeeUser));
+      toast.success('Login successful');
       return true;
     } else {
       toast.error('Invalid email or password');
